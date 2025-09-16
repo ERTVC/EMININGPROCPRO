@@ -1,7 +1,7 @@
 {
-  "short_name": "Emining TTI",
-  "name": "Emining TTI Procurement Pro",
-  "description": "An inventory and budget management portal for Emining Technical Training Institute.",
+  "short_name": "Procurement",
+  "name": "EMINING PROCUREMENT STORE",
+  "description": "An inventory management portal for the Emining Procurement Store.",
   "icons": [
     {
       "src": "https://storage.googleapis.com/prompt-images/inventory-icon-192.png",
