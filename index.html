@@ -72,7 +72,7 @@
       import ReactDOM from 'react-dom/client';
       import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
       
-      const EMINING_TTI_LOGO_BASE64 = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAEsASwDASIAAhEBAxEB/8QAGwABAAIDAQEAAAAAAAAAAAAAAAUGAwQHAgH/xABEEAABAwMBBQQGBgcFBwUAAAABAAIDBAUGBxESIQgTMRQiQVFhFjJCcYGRobHBUgcWM1JicoKS0eElNDU2Q7LwNURjc8L/xAAaAQEAAwEBAQAAAAAAAAAAAAAAAQIDBAUG/8QALBEBAAICAQIDBwUBAQAAAAAAAAECAxEEEiExQVEFE2FxIjKBkaHB0UKx8P/aAAwDAQACEQMRAD8A9UoiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAi';
+      const EMINING_TTI_LOGO_BASE64 = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAEsASwDASIAAhEBAxEB/8QAGwABAAIDAQEAAAAAAAAAAAAAAAUGAwQHAgH/xABEEAABAwMBBQQGBgcFBwUAAAABAAIDBAUGBxESIQgTMRQiQVFhFjJCcYGRobHBUgcWM1JicoKS0eElNDU2Q7LwNURjc8L/xAAaAQEAAwEBAQAAAAAAAAAAAAAAAQIDBAUG/8QALBEBAAICAQIDBwUBAQAAAAAAAAECAxEEEiExQVEFE2FxIjKBkaHB0UKx8P/aAAwDAQACEQMRAD8A9UoiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAi';
 
       // --- Consolidated Application Code ---
       
@@ -122,12 +122,63 @@
           ADMIN: 'Admin',
           OFFICER: 'Officer',
       };
+
+      // --- START: DEMO DATA ---
+      // This data is used to populate the application on first load if no data exists in localStorage.
+      const demoRecipients = [
+        { id: 'recipient-1699912345678', name: 'John Doe', identifier: 'SCT221-0123/2022', type: RecipientType.TRAINEE },
+        { id: 'recipient-1699923456789', name: 'Jane Smith', identifier: 'TSC-567890', type: RecipientType.TRAINER },
+        { id: 'recipient-1699934567890', name: 'Dr. Evans K.', identifier: 'HOD-ICT', type: RecipientType.HOD },
+        { id: 'recipient-1699945678901', name: 'Procurement Office', identifier: 'DEPT-PROC', type: RecipientType.PROCUREMENT_OFFICE },
+        { id: 'recipient-1699956789012', name: 'Kitchen Department', identifier: 'DEPT-KITCH', type: RecipientType.KITCHEN },
+      ];
+
+      const demoItems = [
+        // Stationery
+        { id: 'item-1700100000001', name: 'A4 Ream Paper (500 sheets)', quantity: 50, category: 'Stationery', department: 'Administration', unit: UnitType.PKTS, isAsset: false, isForIGA: false, dateAdded: '2023-10-01T10:00:00.000Z', condition: null },
+        { id: 'item-1700100000002', name: 'Whiteboard Markers (Box of 12)', quantity: 20, category: 'Stationery', department: 'Academics', unit: UnitType.PKTS, isAsset: false, isForIGA: false, dateAdded: '2023-10-01T10:05:00.000Z', condition: null },
+        // Electronics
+        { id: 'item-1700100000003', name: 'Dell Latitude 5420 Laptop', quantity: 8, category: 'Electronics', department: 'ICT Department', unit: UnitType.PCS, isAsset: true, isForIGA: false, dateAdded: '2023-09-15T14:30:00.000Z', condition: AssetCondition.GOOD },
+        { id: 'item-1700100000004', name: 'HP LaserJet Pro MFP M227fdw', quantity: 2, category: 'Electronics', department: 'Administration', unit: UnitType.PCS, isAsset: true, isForIGA: false, dateAdded: '2022-08-20T11:00:00.000Z', condition: AssetCondition.SERVICEABLE },
+        { id: 'item-1700100000005', name: 'Epson EB-S41 Projector', quantity: 1, category: 'Electronics', department: 'Academics', unit: UnitType.PCS, isAsset: true, isForIGA: false, dateAdded: '2021-05-10T09:00:00.000Z', condition: AssetCondition.OBSOLETE },
+        // Kitchen
+        { id: 'item-1700100000006', name: 'Sugar', quantity: 15, category: 'Foodstuff', department: 'Kitchen', unit: UnitType.KGS, isAsset: false, isForIGA: false, dateAdded: '2023-11-05T08:00:00.000Z', condition: null },
+        { id: 'item-1700100000007', name: 'Cooking Oil (20L Jerrycan)', quantity: 5, category: 'Foodstuff', department: 'Kitchen', unit: UnitType.PCS, isAsset: false, isForIGA: false, dateAdded: '2023-11-05T08:05:00.000Z', condition: null },
+        // IGA
+        { id: 'item-1700100000008', name: 'Fabric Rolls (Kitenge)', quantity: 30, category: 'Textiles', department: 'Fashion & Design', unit: UnitType.ROLLS, isAsset: false, isForIGA: true, dateAdded: '2023-10-20T12:00:00.000Z', condition: null },
+        { id: 'item-1700100000009', name: 'Singer Heavy Duty Sewing Machine', quantity: 4, category: 'Equipment', department: 'Fashion & Design', unit: UnitType.PCS, isAsset: true, isForIGA: true, dateAdded: '2023-02-18T16:00:00.000Z', condition: AssetCondition.GOOD },
+        // Furniture
+        { id: 'item-1700100000010', name: 'High-Back Office Chair', quantity: 3, category: 'Furniture', department: 'Administration', unit: UnitType.PCS, isAsset: true, isForIGA: false, dateAdded: '2023-01-10T15:00:00.000Z', condition: AssetCondition.GOOD },
+      ];
+
+      const demoIssueRecords = [
+        { id: 'rec-1700200000001', itemId: 'item-1700100000001', itemName: 'A4 Ream Paper (500 sheets)', quantityIssued: 2, recipientName: 'Procurement Office (DEPT-PROC)', recipientType: RecipientType.PROCUREMENT_OFFICE, dateIssued: '2023-11-10T11:30:00.000Z', returnDateTime: null, dateReturned: null },
+        { id: 'rec-1700200000002', itemId: 'item-1700100000003', itemName: 'Dell Latitude 5420 Laptop', quantityIssued: 1, recipientName: 'Jane Smith (TSC-567890)', recipientType: RecipientType.TRAINER, dateIssued: '2023-11-08T09:00:00.000Z', returnDateTime: '2024-01-15T17:00:00.000Z', dateReturned: null },
+        { id: 'rec-1700200000003', itemId: 'item-1700100000010', itemName: 'High-Back Office Chair', quantityIssued: 1, recipientName: 'Dr. Evans K. (HOD-ICT)', recipientType: RecipientType.HOD, dateIssued: '2023-10-15T14:00:00.000Z', returnDateTime: '2023-10-20T17:00:00.000Z', dateReturned: '2023-10-20T16:45:00.000Z' },
+        { id: 'rec-1700200000004', itemId: 'item-1700100000006', itemName: 'Sugar', quantityIssued: 5, recipientName: 'Kitchen Department (DEPT-KITCH)', recipientType: RecipientType.KITCHEN, dateIssued: '2023-11-12T07:00:00.000Z', returnDateTime: null, dateReturned: null },
+      ];
+
+      const demoDisposalRecords = [
+        { 
+          id: 'disp-rec-1700300000001', 
+          requestId: 'DISP-1700300000001', 
+          requestDate: '2023-11-14T15:00:00.000Z',
+          assetIds: ['item-1700100000005'], // The Epson Projector
+          reason: 'The projector has a faulty lamp, and the cost of repair exceeds 75% of its replacement value. The model is also outdated with low brightness.',
+          method: DisposalMethod.AUCTION,
+          status: DisposalStatus.PENDING,
+          boardOfSurvey: ['Mr. David R. (Chairman)', 'Ms. Alice W. (Secretary)', 'Mr. Peter O. (Member)']
+        }
+      ];
+      // --- END: DEMO DATA ---
       
       // --- START: UTILITIES & HOOKS ---
       const useLocalStorage = (key, initialValue) => {
         const [storedValue, setStoredValue] = useState(() => {
           try {
             const item = window.localStorage.getItem(key);
+            // If the item doesn't exist, use the initialValue.
+            // This ensures demo data is loaded on the very first run.
             return item ? JSON.parse(item) : initialValue;
           } catch (error) {
             console.error(error);
@@ -1995,10 +2046,10 @@
       };
 
       // From components/Sidebar.tsx
-      const Sidebar = ({ currentPage, onNavigate, onLogout, user }) => (
+      const Sidebar = ({ currentPage, onNavigate, onLogout, user, institutionalLogo }) => (
         <div className="bg-primary text-white w-64 p-6 flex flex-col min-h-screen shadow-2xl">
           <div className="text-center mb-10">
-             <img src={EMINING_TTI_LOGO_BASE64} alt="Emining TTI Logo" className="w-24 h-24 mx-auto mb-4 rounded-full border-4 border-white/50 shadow-lg"/>
+             <img src={institutionalLogo || EMINING_TTI_LOGO_BASE64} alt="Emining TTI Logo" className="w-24 h-24 mx-auto mb-4 rounded-full border-4 border-white/50 shadow-lg object-contain bg-white"/>
             <h2 className="text-xl font-bold tracking-wider">Emining TTI Procurement</h2>
           </div>
           <nav className="flex-1">
@@ -2033,7 +2084,7 @@
         </div>
       );
       
-      const LoginPage = ({ onLogin }) => {
+      const LoginPage = ({ onLogin, institutionalLogo }) => {
         const [email, setEmail] = useState('');
         const [password, setPassword] = useState('');
         const [error, setError] = useState('');
@@ -2050,7 +2101,7 @@
             <div className="min-h-screen flex items-center justify-center bg-background">
               <div className="w-full max-w-md bg-surface p-8 rounded-2xl shadow-2xl">
                 <div className="text-center mb-8">
-                  <img src={EMINING_TTI_LOGO_BASE64} alt="Emining TTI Logo" className="w-28 h-28 mx-auto mb-4"/>
+                  <img src={institutionalLogo || EMINING_TTI_LOGO_BASE64} alt="Emining TTI Logo" className="w-28 h-28 mx-auto mb-4 object-contain"/>
                   <h1 className="text-3xl font-bold text-text-primary mb-2">Emining TTI Procurement</h1>
                   <p className="text-text-secondary">Log in to your account</p>
                 </div>
@@ -2087,10 +2138,10 @@
         const [currentUser, setCurrentUser] = useLocalStorage('currentUser', null);
         
         // --- DATA STATE ---
-        const [items, setItems] = useLocalStorage('inventoryItems', []);
-        const [issueRecords, setIssueRecords] = useLocalStorage('issueRecords', []);
-        const [recipients, setRecipients] = useLocalStorage('recipients', []);
-        const [disposalRecords, setDisposalRecords] = useLocalStorage('disposalRecords', []);
+        const [items, setItems] = useLocalStorage('inventoryItems', demoItems);
+        const [issueRecords, setIssueRecords] = useLocalStorage('issueRecords', demoIssueRecords);
+        const [recipients, setRecipients] = useLocalStorage('recipients', demoRecipients);
+        const [disposalRecords, setDisposalRecords] = useLocalStorage('disposalRecords', demoDisposalRecords);
         const [institutionalLogo, setInstitutionalLogo] = useLocalStorage('institutionalLogo', EMINING_TTI_LOGO_BASE64);
         
         const [currentPage, setCurrentPage] = useState(Page.DASHBOARD);
@@ -2330,12 +2381,12 @@
         const departments = useMemo(() => [...new Set(items.map(i => i.department))].sort(), [items]);
 
         if (!currentUser) {
-          return <LoginPage onLogin={handleLogin} />;
+          return <LoginPage onLogin={handleLogin} institutionalLogo={institutionalLogo} />;
         }
         
         return (
           <div className="flex bg-background min-h-screen">
-            <Sidebar currentPage={currentPage} onNavigate={setCurrentPage} onLogout={handleLogout} user={currentUser} />
+            <Sidebar currentPage={currentPage} onNavigate={setCurrentPage} onLogout={handleLogout} user={currentUser} institutionalLogo={institutionalLogo} />
             <main className="flex-1 p-8 overflow-y-auto">
               {currentPage === Page.DASHBOARD && <Dashboard stats={dashboardStats} items={items} issueRecords={issueRecords} institutionalLogo={institutionalLogo}/>}
               {currentPage === Page.INVENTORY && <Inventory items={items} recipients={recipients} onAddItem={onAddItem} onAddMultipleItems={onAddMultipleItems} onIssueItem={onIssueItem} onEditItem={onEditItem} lockedAssetIds={lockedAssetIds} institutionalLogo={institutionalLogo}/>}
