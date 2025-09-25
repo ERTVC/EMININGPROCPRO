@@ -66,7 +66,7 @@
       import ReactDOM from 'react-dom/client';
       import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
       
-      const APP_LOGO_BASE64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAJDSURBVHgB7Zu9TtswEMf/dIS0RLkS5QkcI3SEjJA5Qjc4BskcISMkLpA5gXxCHiA/kCeUTVpAg7S0m+2xY8e2Iq+lV/pAjsR3vDsfj/gDAAEEkDbAn8sAEEDaAD8uA0AAaQP8uAwAAGkDeHoGfr8fHx8fRkdHy2639w6Ao/kI/Hq9vFwu9w7Ao3kIvN/vDx4eHvYD0L/xCFyv17e1tXU/AP2bV2CcAIIBIIBwAAggGAACCAeAAIIBIIBwAAggGAACCAeAAIIBIIBwAAggGAACCAeAAIIBIIBwAAggGAACCAeAAIIB4LaA1+v1/v7+4eHh5na7A2QO0G0+xtfr5Xq93G63B8gcINt8nHA45Pf7YwwDAAOADaA4HHA4HHI5HDzPs453uVxeX19/gAAgVwA36Nlsvru7uzc2Nu5pXiwWn5+fv4AADwG4Qc/n8/2i0A8g0wKcxwM4DwdwHg/geADAeQDgeQDAeQDgeQDAeQDgeQDAeQDgeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDgeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDg+fMWkFOB3s9p2wAAAABJRU5ErkJggg==';
+      const APP_LOGO_BASE64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAJDSURBVHgB7Zu9TtswEMf/dIS0RLkS5QkcI3SEjJA5Qjc4BskcISMkLpA5gXxCHiA/kCeUTVpAg7S0m+2xY8e2Iq+lV/pAjsR3vDsfj/gDAAEEkDbAn8sAEEDaAD8uA0AAaQP8uAwAAGkDeHoGfr8fHx8fRkdHy2639w6Ao/kI/Hq9vFwu9w7Ao3kIvN/vDx4eHvYD0L/xCFyv17e1tXU/AP2bV2CcAIIBIIBwAAggGAACCAeAAIIBIIBwAAggGAACCAeAAIIBIIBwAAggGAACCAeAAIIBIIBwAAggGAACCAeAAIIB4LaA1+v1/v7+4eHh5na7A2QO0G0+xtfr5Xq93G63B8gcINt8nHA45Pf7YwwDAAOADaA4HHA4HHI5HDzPs453uVxeX19/gAAgVwA36Nlsvru7uzc2Nu5pXiwWn5+fv4AADwG4Qc/n8/2i0A8g0wKcxwM4DwdwHg/geADAeQDgeQDAeQDgeQDAeQDgeQDAeQDgeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDgeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDg+fMWkFOB3s9p2wAAAABJRU5ErkJggg==';
       
       // Context for global state management
       const AppContext = createContext();
@@ -122,7 +122,7 @@
             { id: 14, name: "Drill Bit Set", category: "Workshop Tools", quantity: 12, unit: "Box", department: "Mechanical", type: "Consumable", condition: "N/A", isIGA: false },
             { id: 15, name: "Fabric Rolls (IGA)", category: "IGA", quantity: 20, unit: "Rolls", department: "Tailoring", type: "Consumable", condition: "N/A", isIGA: true },
             { id: 16, name: "Sugar", category: "Kitchen Supplies", quantity: 80, unit: "Kgs", department: "Kitchen", type: "Consumable", condition: "N/A", isIGA: false },
-            { id: 17, name: "HDMI Cables", category: "Electronics", quantity: 2, unit: "Pcs", department: "ICT", type: "Consumable", condition: "N/A", isIGA: false },
+            { id: 17, name: "HDMI Cables", category: "Electronics", quantity: 0, unit: "Pcs", department: "ICT", type: "Consumable", condition: "N/A", isIGA: false },
             { id: 19, name: "Ballpoint Pens (Blue)", category: "Stationery", quantity: 9, unit: "Box", department: "Main Store", type: "Consumable", condition: "N/A", isIGA: false },
         ],
         assets: [
@@ -520,10 +520,21 @@
             return consumableLow;
         }, [inventory]);
 
-        const outOfStockItems = useMemo(() => {
-            const consumableOut = inventory.filter(item => item.type === 'Consumable' && item.quantity === 0).length;
-            return consumableOut;
-        }, [inventory]);
+        const outOfStockItemList = useMemo(() => {
+            const consumableOut = inventory.filter(item => item.type === 'Consumable' && item.quantity <= 0);
+
+            const assetTemplates = inventory.filter(item => item.type === 'Asset');
+            const inStockAssetInventoryIds = new Set(assets.filter(a => a.status === 'In Stock').map(a => a.inventoryId));
+            
+            const assetOut = assetTemplates.filter(item => {
+                const hasAnyAssets = assets.some(a => a.inventoryId === item.id);
+                return hasAnyAssets && !inStockAssetInventoryIds.has(item.id);
+            });
+
+            return [...consumableOut, ...assetOut].sort((a,b) => a.name.localeCompare(b.name));
+        }, [inventory, assets]);
+
+        const outOfStockItemsCount = outOfStockItemList.length;
 
         const stockByCategory = useMemo(() => {
             const categories = {};
@@ -557,7 +568,7 @@
               <StatCard icon="fa-box" title="Total Items in Stock" value={totalItems} color="text-indigo-500" />
               <StatCard icon="fa-arrow-right-from-bracket" title="Total Items Issued" value={totalIssued} color="text-teal-500" />
               <StatCard icon="fa-triangle-exclamation" title="Low Stock Items" value={lowStockItems} color="text-amber-500" />
-              <StatCard icon="fa-circle-xmark" title="Out of Stock" value={outOfStockItems} color="text-red-500" />
+              <StatCard icon="fa-circle-xmark" title="Out of Stock" value={outOfStockItemsCount} color="text-red-500" />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
@@ -597,6 +608,27 @@
                         </PieChart>
                     </ResponsiveContainer>
                 </div>
+            </div>
+
+            <div className="bg-surface rounded-lg shadow p-5">
+                <h2 className="text-lg font-semibold text-text-primary mb-4">
+                    <i className="fas fa-circle-xmark text-red-500 mr-2"></i>Out of Stock Items
+                </h2>
+                {outOfStockItemList.length > 0 ? (
+                    <ul className="divide-y divide-gray-200 max-h-60 overflow-y-auto">
+                    {outOfStockItemList.map(item => (
+                        <li key={item.id} className="py-3 flex justify-between items-center">
+                        <div>
+                            <p className="font-medium text-text-primary">{item.name}</p>
+                            <p className="text-sm text-text-secondary">{item.category}</p>
+                        </div>
+                        <span className="text-xs font-semibold text-red-600 bg-red-100 px-2 py-1 rounded-full">{item.type}</span>
+                        </li>
+                    ))}
+                    </ul>
+                ) : (
+                    <p className="text-text-secondary">No items are currently out of stock. Well done!</p>
+                )}
             </div>
           </div>
         );
