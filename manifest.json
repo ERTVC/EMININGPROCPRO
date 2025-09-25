@@ -1,7 +1,7 @@
 {
   "short_name": "Procurement",
-  "name": "EMINING PROCUREMENT STORE",
-  "description": "An inventory management portal for the Emining Procurement Store.",
+  "name": "TVET PROCSTORE",
+  "description": "An inventory management portal for TVET institutions.",
   "icons": [
     {
       "src": "https://storage.googleapis.com/prompt-images/inventory-icon-192.png",

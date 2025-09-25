@@ -8,7 +8,7 @@ const urlsToCache = [
   '/manifest.json',
   // Note: The browser will cache these automatically upon first load due to the fetch handler below.
   // We list them here for pre-caching, which makes the first offline load faster.
-  'https://cdn.tailwindcss.com?plugins=typography',
+  'https://cdn.tailwindcss.com?plugins=typography,forms',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css',
   'https://unpkg.com/@babel/standalone/babel.min.js',
   'https://esm.sh/react@18.3.1',
@@ -17,8 +17,7 @@ const urlsToCache = [
   'https://esm.sh/recharts@2.12.7',
   'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js',
-  'https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js',
-  'https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js'
+  'https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js'
 ];
 
 // Install the service worker and pre-cache essential assets
