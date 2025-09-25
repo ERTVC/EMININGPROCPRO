@@ -66,7 +66,7 @@
       import ReactDOM from 'react-dom/client';
       import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
       
-      const APP_LOGO_BASE64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAJDSURBVHgB7Zu9TtswEMf/dIS0RLkS5QkcI3SEjJA5Qjc4BskcISMkLpA5gXxCHiA/kCeUTVpAg7S0m+2xY8e2Iq+lV/pAjsR3vDsfj/gDAAEEkDbAn8sAEEDaAD8uA0AAaQP8uAwAAGkDeHoGfr8fHx8fRkdHy2639w6Ao/kI/Hq9vFwu9w7Ao3kIvN/vDx4eHvYD0L/xCFyv17e1tXU/AP2bV2CcAIIBIIBwAAggGAACCAeAAIIBIIBwAAggGAACCAeAAIIBIIBwAAggGAACCAeAAIIBIIBwAAggGAACCAeAAIIB4LaA1+v1/v7+4eHh5na7A2QO0G0+xtfr5Xq93G63B8gcINt8nHA45Pf7YwwDAAOADaA4HHA4HHI5HDzPs453uVxeX19/gAAgVwA36Nlsvru7uzc2Nu5pXiwWn5+fv4AADwG4Qc/n8/2i0A8g0wKcxwM4DwdwHg/geADAeQDgeQDAeQDgeQDAeQDgeQDAeQDgeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDgeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDg+fMWkFOB3s9p2wAAAABJRU5ErkJggg==';
+      const APP_LOGO_BASE64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAJDSURBVHgB7Zu9TtswEMf/dIS0RLkS5QkcI3SEjJA5Qjc4BskcISMkLpA5gXxCHiA/kCeUTVpAg7S0m+2xY8e2Iq+lV/pAjsR3vDsfj/gDAAEEkDbAn8sAEEDaAD8uA0AAaQP8uAwAAGkDeHoGfr8fHx8fRkdHy2639w6Ao/kI/Hq9vFwu9w7Ao3kIvN/vDx4eHvYD0L/xCFyv17e1tXU/AP2bV2CcAIIBIIBwAAggGAACCAeAAIIBIIBwAAggGAACCAeAAIIBIIBwAAggGAACCAeAAIIBIIBwAAggGAACCAeAAIIB4LaA1+v1/v7+4eHh5na7A2QO0G0+xtfr5Xq93G63B8gcINt8nHA45Pf7YwwDAAOADaA4HHA4HHI5HDzPs453uVxeX19/gAAgVwA36Nlsvru7uzc2Nu5pXiwWn5+fv4AADwG4Qc/n8/2i0A8g0wKcxwM4DwdwHg/geADAeQDgeQDAeQDgeQDAeQDgeQDAeQDgeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDgeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDAeQDg+fMWkFOB3s9p2wAAAABJRU5ErkJggg==';
       
       // Context for global state management
       const AppContext = createContext();
@@ -1738,6 +1738,38 @@
       const App = () => {
         const { user, handleLogin, handleLogout, isOnline } = useAppContext();
         const [activePage, setActivePage] = useState('dashboard');
+        const [installPrompt, setInstallPrompt] = useState(null);
+
+        useEffect(() => {
+            const beforeInstallHandler = (e) => {
+                e.preventDefault();
+                setInstallPrompt(e);
+            };
+            const appInstalledHandler = () => {
+                setInstallPrompt(null);
+            };
+
+            window.addEventListener('beforeinstallprompt', beforeInstallHandler);
+            window.addEventListener('appinstalled', appInstalledHandler);
+
+            return () => {
+                window.removeEventListener('beforeinstallprompt', beforeInstallHandler);
+                window.removeEventListener('appinstalled', appInstalledHandler);
+            };
+        }, []);
+
+        const handleInstallClick = () => {
+            if (!installPrompt) return;
+            installPrompt.prompt();
+            installPrompt.userChoice.then((choiceResult) => {
+                if (choiceResult.outcome === 'accepted') {
+                    console.log('User accepted the install prompt');
+                } else {
+                    console.log('User dismissed the install prompt');
+                }
+                setInstallPrompt(null);
+            });
+        };
 
         if (!user) {
           return <LoginPage onLogin={handleLogin} />;
@@ -1760,7 +1792,16 @@
           <div className="flex h-screen bg-background">
             <Sidebar activePage={activePage} setActivePage={setActivePage} onLogout={handleLogout} user={user} />
             <div className="flex-1 flex flex-col ml-64">
-                <header className="bg-surface shadow-sm p-4 flex justify-end items-center">
+                <header className="bg-surface shadow-sm p-4 flex justify-end items-center space-x-4">
+                    {installPrompt && (
+                        <button
+                            onClick={handleInstallClick}
+                            className="bg-primary hover:bg-indigo-700 text-white font-bold py-1 px-3 rounded-lg shadow transition-colors text-sm animate-pulse"
+                            title="Install App"
+                        >
+                            <i className="fas fa-download mr-2"></i>Install App
+                        </button>
+                    )}
                     <div className={`flex items-center space-x-2 px-3 py-1 rounded-full text-sm ${isOnline ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                         <span className={`h-2 w-2 rounded-full ${isOnline ? 'bg-green-500' : 'bg-red-500'}`}></span>
                         <span>{isOnline ? 'Online' : 'Offline'}</span>
