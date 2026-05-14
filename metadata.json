@@ -1,6 +1,7 @@
 {
-  "name": "TVET PROCSTORE",
-  "description": "An inventory management portal for TVET institutions, made by Mr Felix.",
+  "name": "PROCSTORE",
+  "description": "PROCSTORE: Advanced TVET Inventory Management System. A comprehensive platform designed to streamline inventory and procurement workflows within TVET institutions, featuring asset tracking, consumable management, issue logging, and robust reporting.",
   "requestFramePermissions": [],
-  "prompt": ""
+  "prompt": "",
+  "majorCapabilities": []
 }

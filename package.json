@@ -1,7 +1,14 @@
 {
-  "name": "tvet-procstore",
+  "name": "procstore",
   "version": "1.0.0",
   "private": true,
-  "scripts": {},
-  "dependencies": {}
+  "scripts": {
+    "dev": "vite --port 3000 --host",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "echo 'No linting needed for index.html monolith'"
+  },
+  "devDependencies": {
+    "vite": "^8.0.11"
+  }
 }
