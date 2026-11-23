@@ -1,0 +1,1500 @@
+{
+  "entities": {
+    "StoreSettings": {
+      "title": "StoreSettings",
+      "description": "Institution branding, store configuration, and authorized member emails for a PROCSTORE workspace.",
+      "type": "object",
+      "properties": {
+        "storeId": {
+          "type": "string",
+          "description": "Workspace identifier.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "ownerUid": {
+          "type": "string",
+          "description": "Firebase Auth UID of the workspace owner.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "institutionName": {
+          "type": "string",
+          "description": "Institution display name shown in headers and PDFs.",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "logo": {
+          "type": "string",
+          "description": "Base64 PNG data URL for the institution logo.",
+          "maxLength": 300000
+        },
+        "memberEmails": {
+          "type": "array",
+          "description": "Bounded list (max 50) of verified officer emails allowed to access this store."
+        },
+        "seeded": {
+          "type": "boolean",
+          "description": "Whether initial sample records have already been initialized."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp."
+        }
+      },
+      "required": [
+        "storeId",
+        "ownerUid",
+        "institutionName",
+        "logo",
+        "memberEmails",
+        "seeded",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "StoreAccess": {
+      "title": "StoreAccess",
+      "description": "Authorized procurement officer access record managed by the store administrator.",
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "Verified Google email address of the authorized officer.",
+          "minLength": 3,
+          "maxLength": 254
+        },
+        "role": {
+          "type": "string",
+          "description": "Assigned store role.",
+          "enum": ["admin", "officer", "hod"]
+        },
+        "department": {
+          "type": "string",
+          "description": "Assigned department for HOD or Officer accounts, or empty string.",
+          "maxLength": 80
+        },
+        "username": {
+          "type": "string",
+          "description": "Admin-assigned lowercase login username (e.g. hod, officer, admin).",
+          "minLength": 2,
+          "maxLength": 40,
+          "pattern": "^[a-z0-9._-]+$"
+        },
+        "pinSalt": {
+          "type": "string",
+          "description": "Per-user cryptographic hex salt used for PBKDF2-SHA256 PIN verification.",
+          "minLength": 16,
+          "maxLength": 64,
+          "pattern": "^[a-f0-9]+$"
+        },
+        "pinHash": {
+          "type": "string",
+          "description": "Salted PBKDF2-SHA256 hex digest of the user login PIN (never plaintext).",
+          "minLength": 32,
+          "maxLength": 128,
+          "pattern": "^[a-f0-9]+$"
+        },
+        "status": {
+          "type": "string",
+          "description": "Access approval status.",
+          "enum": ["active", "revoked"]
+        },
+        "storeId": {
+          "type": "string",
+          "description": "Store workspace ID granted by this record.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "addedByUid": {
+          "type": "string",
+          "description": "Admin UID that granted this access.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp."
+        }
+      },
+      "required": [
+        "email",
+        "role",
+        "department",
+        "username",
+        "pinSalt",
+        "pinHash",
+        "status",
+        "storeId",
+        "addedByUid",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "InventoryItem": {
+      "title": "InventoryItem",
+      "description": "Master inventory item record (either a Consumable with quantity or an Asset template).",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Document ID.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "storeId": {
+          "type": "string",
+          "description": "Store workspace ID.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "ownerUid": {
+          "type": "string",
+          "description": "Creator UID.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "memberEmails": {
+          "type": "array",
+          "description": "Bounded list (max 50) of authorized member emails."
+        },
+        "name": {
+          "type": "string",
+          "description": "Item name.",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "category": {
+          "type": "string",
+          "description": "Item category.",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "department": {
+          "type": "string",
+          "description": "Assigned department.",
+          "maxLength": 80
+        },
+        "type": {
+          "type": "string",
+          "description": "Item classification.",
+          "enum": ["Asset", "Consumable"]
+        },
+        "unit": {
+          "type": "string",
+          "description": "Unit of measure.",
+          "minLength": 1,
+          "maxLength": 30
+        },
+        "quantity": {
+          "type": "number",
+          "description": "Available quantity in base issue units (e.g. Pcs, Meters)."
+        },
+        "isIGA": {
+          "type": "boolean",
+          "description": "Whether the item belongs to an Income-Generating Activity."
+        },
+        "isConsumable": {
+          "type": "boolean",
+          "description": "True if non-returnable/cut/used up (e.g. cable, paper); false if returnable (e.g. sockets, switches)."
+        },
+        "purchaseUnit": {
+          "type": "string",
+          "description": "Optional bulk purchase unit (e.g. Rolls, Boxes).",
+          "maxLength": 30
+        },
+        "unitsPerPurchase": {
+          "type": "number",
+          "description": "Number of base issue units in one purchase unit (e.g. 90 meters per roll)."
+        },
+        "location": {
+          "type": "string",
+          "description": "Optional store shelf, bin, or workshop storage location.",
+          "maxLength": 120
+        },
+        "damagedQty": {
+          "type": "number",
+          "description": "Cumulative damaged or unusable quantity recorded upon return checks."
+        },
+        "damagedQuantity": {
+          "type": "number",
+          "description": "Legacy alias for cumulative damaged or unusable quantity."
+        },
+        "condition": {
+          "type": "string",
+          "description": "Condition label for consumables.",
+          "maxLength": 40
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp."
+        }
+      },
+      "required": [
+        "id",
+        "storeId",
+        "ownerUid",
+        "memberEmails",
+        "name",
+        "category",
+        "department",
+        "type",
+        "unit",
+        "quantity",
+        "isIGA",
+        "condition",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "AssetItem": {
+      "title": "AssetItem",
+      "description": "Individual serialized asset unit linked to an InventoryItem template.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Document ID.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "storeId": {
+          "type": "string",
+          "description": "Store workspace ID.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "ownerUid": {
+          "type": "string",
+          "description": "Creator UID.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "memberEmails": {
+          "type": "array",
+          "description": "Bounded list (max 50) of authorized member emails."
+        },
+        "inventoryId": {
+          "type": "string",
+          "description": "Parent InventoryItem document ID.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "serialNumber": {
+          "type": "string",
+          "description": "Unique hardware/asset serial number.",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "condition": {
+          "type": "string",
+          "description": "Physical condition.",
+          "enum": ["Good", "Serviceable", "Obsolete"]
+        },
+        "status": {
+          "type": "string",
+          "description": "Availability status.",
+          "enum": ["In Stock", "Issued", "Disposed"]
+        },
+        "currentHolderId": {
+          "type": "string",
+          "description": "Recipient ID if currently issued, otherwise empty string.",
+          "maxLength": 128
+        },
+        "activeIssueLogId": {
+          "type": "string",
+          "description": "Active IssueLogEntry ID if currently issued, otherwise empty string.",
+          "maxLength": 128
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp."
+        }
+      },
+      "required": [
+        "id",
+        "storeId",
+        "ownerUid",
+        "memberEmails",
+        "inventoryId",
+        "serialNumber",
+        "condition",
+        "status",
+        "currentHolderId",
+        "activeIssueLogId",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Recipient": {
+      "title": "Recipient",
+      "description": "Person or department eligible to receive inventory items.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Document ID.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "storeId": {
+          "type": "string",
+          "description": "Store workspace ID.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "ownerUid": {
+          "type": "string",
+          "description": "Creator UID.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "memberEmails": {
+          "type": "array",
+          "description": "Bounded list (max 50) of authorized member emails."
+        },
+        "name": {
+          "type": "string",
+          "description": "Recipient or department name.",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "type": {
+          "type": "string",
+          "description": "Recipient category.",
+          "enum": ["Trainee", "Trainer", "Staff", "Department", "Other"]
+        },
+        "regNumber": {
+          "type": "string",
+          "description": "Optional trainee or staff registration ID.",
+          "maxLength": 60
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp."
+        }
+      },
+      "required": [
+        "id",
+        "storeId",
+        "ownerUid",
+        "memberEmails",
+        "name",
+        "type",
+        "regNumber",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "IssueLogEntry": {
+      "title": "IssueLogEntry",
+      "description": "Audit record for issuing a consumable or serialized asset to a recipient.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Document ID.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "storeId": {
+          "type": "string",
+          "description": "Store workspace ID.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "ownerUid": {
+          "type": "string",
+          "description": "Issuing officer UID.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "memberEmails": {
+          "type": "array",
+          "description": "Bounded list (max 50) of authorized member emails."
+        },
+        "inventoryId": {
+          "type": "string",
+          "description": "Issued InventoryItem ID.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "assetId": {
+          "type": "string",
+          "description": "Issued AssetItem ID if serialized, otherwise empty string.",
+          "maxLength": 128
+        },
+        "recipientId": {
+          "type": "string",
+          "description": "Recipient document ID.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "quantity": {
+          "type": "number",
+          "description": "Quantity issued in base issue units (e.g. Pcs or Meters)."
+        },
+        "itemName": {
+          "type": "string",
+          "description": "Snapshot item name.",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "serialNumber": {
+          "type": "string",
+          "description": "Snapshot asset serial number or empty string.",
+          "maxLength": 100
+        },
+        "recipientName": {
+          "type": "string",
+          "description": "Snapshot recipient name.",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "dateIssued": {
+          "type": "string",
+          "description": "ISO date string when issued.",
+          "minLength": 1,
+          "maxLength": 40
+        },
+        "returnDate": {
+          "type": "string",
+          "description": "Expected return date or empty string.",
+          "maxLength": 40
+        },
+        "dateReturned": {
+          "type": "string",
+          "description": "Actual return date ISO string or empty string.",
+          "maxLength": 40
+        },
+        "returned": {
+          "type": "boolean",
+          "description": "Whether the issued item has been returned (always true for non-returnable consumables)."
+        },
+        "isConsumable": {
+          "type": "boolean",
+          "description": "Snapshot of whether the issued item is a non-returnable consumable."
+        },
+        "unit": {
+          "type": "string",
+          "description": "Snapshot of base issue unit (e.g. Pcs, Meters).",
+          "maxLength": 30
+        },
+        "usageScope": {
+          "type": "string",
+          "description": "Where issued items are used: inside a school workshop/practical or taken outside school.",
+          "enum": ["Workshop / Practical", "Outside School"]
+        },
+        "usageLocation": {
+          "type": "string",
+          "description": "Specific workshop/lab name or outside job destination.",
+          "maxLength": 120
+        },
+        "requiresGatePass": {
+          "type": "boolean",
+          "description": "True when items are taken outside school and require a gate pass."
+        },
+        "gatePassNumber": {
+          "type": "string",
+          "description": "Official Gate Pass reference number for outside-school dispatches, or empty string.",
+          "maxLength": 40
+        },
+        "returnCondition": {
+          "type": "string",
+          "description": "Inspected physical condition recorded when a returnable item or serialized asset is returned.",
+          "enum": ["Good", "Serviceable", "Obsolete"]
+        },
+        "returnConditionNotes": {
+          "type": "string",
+          "description": "Optional condition check notes recorded upon return.",
+          "maxLength": 200
+        },
+        "damagedQuantity": {
+          "type": "number",
+          "description": "Quantity found damaged or obsolete upon return and excluded from usable store stock."
+        },
+        "restoredQuantity": {
+          "type": "number",
+          "description": "Quantity verified Good or Serviceable and restored into usable store stock."
+        },
+        "sourceInventoryId": {
+          "type": "string",
+          "description": "Exact InventoryItem document ID at the time of issue.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "sourceStoreId": {
+          "type": "string",
+          "description": "Exact source store ID at the time of issue.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "sourceLocation": {
+          "type": "string",
+          "description": "Optional source inventory storage location snapshot.",
+          "maxLength": 120
+        },
+        "sourceCondition": {
+          "type": "string",
+          "description": "Source item/asset condition snapshot at time of issue.",
+          "maxLength": 40
+        },
+        "qtyIssued": {
+          "type": "number",
+          "description": "Exact quantity issued at dispatch time."
+        },
+        "returnedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp recorded when return check is confirmed."
+        },
+        "returnedBy": {
+          "type": "string",
+          "format": "email",
+          "description": "Email of the verified officer or admin who confirmed the return check.",
+          "maxLength": 254
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp."
+        }
+      },
+      "required": [
+        "id",
+        "storeId",
+        "ownerUid",
+        "memberEmails",
+        "inventoryId",
+        "assetId",
+        "recipientId",
+        "quantity",
+        "itemName",
+        "serialNumber",
+        "recipientName",
+        "dateIssued",
+        "returnDate",
+        "dateReturned",
+        "returned",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "DisposalLogEntry": {
+      "title": "DisposalLogEntry",
+      "description": "Asset disposal request and approval workflow log.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Document ID.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "storeId": {
+          "type": "string",
+          "description": "Store workspace ID.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "ownerUid": {
+          "type": "string",
+          "description": "Requesting officer UID.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "memberEmails": {
+          "type": "array",
+          "description": "Bounded list (max 50) of authorized member emails."
+        },
+        "assetId": {
+          "type": "string",
+          "description": "Target AssetItem ID.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "inventoryId": {
+          "type": "string",
+          "description": "Parent InventoryItem ID.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "method": {
+          "type": "string",
+          "description": "Recommended disposal method.",
+          "enum": ["Public Auction", "Public Tender", "Donation", "Destruction", "Trade-in"]
+        },
+        "itemName": {
+          "type": "string",
+          "description": "Snapshot item name with serial number.",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "itemCategory": {
+          "type": "string",
+          "description": "Snapshot item category.",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "status": {
+          "type": "string",
+          "description": "Disposal workflow state.",
+          "enum": ["Pending", "Approved", "Rejected", "Disposed"]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp."
+        }
+      },
+      "required": [
+        "id",
+        "storeId",
+        "ownerUid",
+        "memberEmails",
+        "assetId",
+        "inventoryId",
+        "method",
+        "itemName",
+        "itemCategory",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "DepartmentalIGA": {
+      "title": "DepartmentalIGA",
+      "description": "Departmental Income-Generating Activity (IGA) unit registered by a TVET department.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Document ID.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "storeId": {
+          "type": "string",
+          "description": "Store workspace ID.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "ownerUid": {
+          "type": "string",
+          "description": "Creator UID.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "memberEmails": {
+          "type": "array",
+          "description": "Bounded list (max 50) of authorized member emails."
+        },
+        "department": {
+          "type": "string",
+          "description": "College department running this IGA.",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "igaName": {
+          "type": "string",
+          "description": "Official IGA project or unit name.",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "activityType": {
+          "type": "string",
+          "description": "Classification of the departmental IGA.",
+          "enum": ["Manufacturing", "Services", "Agriculture", "Catering", "Retail", "Other"]
+        },
+        "leadTrainer": {
+          "type": "string",
+          "description": "Lead trainer or department coordinator.",
+          "maxLength": 120
+        },
+        "status": {
+          "type": "string",
+          "description": "Operational state of the IGA unit.",
+          "enum": ["Active", "Planned", "Paused"]
+        },
+        "description": {
+          "type": "string",
+          "description": "Operational scope, products, or services.",
+          "maxLength": 400
+        },
+        "approvalStatus": {
+          "type": "string",
+          "description": "Admin approval workflow status for departmental IGA proposals.",
+          "enum": ["Pending", "Approved", "Rejected"]
+        },
+        "approvalNotes": {
+          "type": "string",
+          "description": "Review remarks provided by the Store Admin upon approval or rejection.",
+          "maxLength": 300
+        },
+        "reviewedByEmail": {
+          "type": "string",
+          "description": "Email of the Store Admin who reviewed the IGA proposal, or empty string.",
+          "maxLength": 254
+        },
+        "proposalFileName": {
+          "type": "string",
+          "description": "Uploaded IGA proposal attachment filename.",
+          "maxLength": 150
+        },
+        "proposalDataUrl": {
+          "type": "string",
+          "description": "Bounded base64 data URL (max 350000 chars) of the uploaded IGA proposal PDF or image.",
+          "maxLength": 350000
+        },
+        "proposalLink": {
+          "type": "string",
+          "description": "Optional external Google Drive / Google Docs HTTPS link to the IGA proposal document (saves Firestore storage).",
+          "maxLength": 500
+        },
+        "proposalSummary": {
+          "type": "string",
+          "description": "Executive summary and financial justification for the departmental IGA proposal.",
+          "maxLength": 600
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp."
+        }
+      },
+      "required": [
+        "id",
+        "storeId",
+        "ownerUid",
+        "memberEmails",
+        "department",
+        "igaName",
+        "activityType",
+        "leadTrainer",
+        "status",
+        "description",
+        "approvalStatus",
+        "approvalNotes",
+        "reviewedByEmail",
+        "proposalFileName",
+        "proposalDataUrl",
+        "proposalSummary",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "IGALogisticsEntry": {
+      "title": "IGALogisticsEntry",
+      "description": "Logistics, material requisition, production output, revenue, and delivery dispatch log for a departmental IGA.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Document ID.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "storeId": {
+          "type": "string",
+          "description": "Store workspace ID.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "ownerUid": {
+          "type": "string",
+          "description": "Creator UID.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "memberEmails": {
+          "type": "array",
+          "description": "Bounded list (max 50) of authorized member emails."
+        },
+        "igaId": {
+          "type": "string",
+          "description": "Parent DepartmentalIGA ID.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "department": {
+          "type": "string",
+          "description": "Snapshot department name.",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "igaName": {
+          "type": "string",
+          "description": "Snapshot IGA unit name.",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "entryType": {
+          "type": "string",
+          "description": "Logistics or financial workflow category.",
+          "enum": [
+            "Store Requisition",
+            "Direct Purchase",
+            "Production Output",
+            "Sales Revenue",
+            "Delivery Dispatch"
+          ]
+        },
+        "inventoryId": {
+          "type": "string",
+          "description": "Linked Central Store InventoryItem ID for store requisitions, or empty string.",
+          "maxLength": 128
+        },
+        "description": {
+          "type": "string",
+          "description": "Item, batch, or logistics description.",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "quantity": {
+          "type": "integer",
+          "description": "Positive integer quantity."
+        },
+        "unit": {
+          "type": "string",
+          "description": "Unit of measure.",
+          "minLength": 1,
+          "maxLength": 30
+        },
+        "unitAmount": {
+          "type": "integer",
+          "description": "Unit cost or price in KES."
+        },
+        "totalAmount": {
+          "type": "integer",
+          "description": "Total KES amount."
+        },
+        "direction": {
+          "type": "string",
+          "description": "Cashflow classification.",
+          "enum": ["Inflow", "Outflow", "Internal"]
+        },
+        "dispatchStatus": {
+          "type": "string",
+          "description": "Fulfillment and delivery state.",
+          "enum": ["Logged", "In Transit", "Delivered", "Completed"]
+        },
+        "destinationOrClient": {
+          "type": "string",
+          "description": "Client, destination, or supplier name.",
+          "maxLength": 120
+        },
+        "dateRecorded": {
+          "type": "string",
+          "description": "ISO date string.",
+          "minLength": 1,
+          "maxLength": 40
+        },
+        "notes": {
+          "type": "string",
+          "description": "Optional logistics remarks.",
+          "maxLength": 300
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp."
+        }
+      },
+      "required": [
+        "id",
+        "storeId",
+        "ownerUid",
+        "memberEmails",
+        "igaId",
+        "department",
+        "igaName",
+        "entryType",
+        "inventoryId",
+        "description",
+        "quantity",
+        "unit",
+        "unitAmount",
+        "totalAmount",
+        "direction",
+        "dispatchStatus",
+        "destinationOrClient",
+        "dateRecorded",
+        "notes",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "IssueRequest": {
+      "title": "IssueRequest",
+      "description": "Item issue request and message sent by a Department HOD to Store Officers and Admin.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Document ID.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "storeId": {
+          "type": "string",
+          "description": "Store workspace ID.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "ownerUid": {
+          "type": "string",
+          "description": "Requester UID.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "memberEmails": {
+          "type": "array",
+          "description": "Bounded list (max 50) of authorized member emails."
+        },
+        "department": {
+          "type": "string",
+          "description": "Originating department.",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "requestedByEmail": {
+          "type": "string",
+          "format": "email",
+          "description": "Email of the HOD or staff member submitting the request.",
+          "minLength": 3,
+          "maxLength": 254
+        },
+        "requestedByName": {
+          "type": "string",
+          "description": "Display name of requester.",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "inventoryId": {
+          "type": "string",
+          "description": "Optional InventoryItem document ID, or empty string for unlisted items.",
+          "maxLength": 128
+        },
+        "itemName": {
+          "type": "string",
+          "description": "Requested item name.",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "quantity": {
+          "type": "number",
+          "description": "Positive quantity requested (supports lengths such as meters)."
+        },
+        "unit": {
+          "type": "string",
+          "description": "Unit of measure.",
+          "minLength": 1,
+          "maxLength": 30
+        },
+        "recipientName": {
+          "type": "string",
+          "description": "Intended workshop, trainer, or trainee receiving the item.",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "usageScope": {
+          "type": "string",
+          "description": "Requested usage scope: inside a school workshop/practical or taken outside school.",
+          "enum": ["Workshop / Practical", "Outside School"]
+        },
+        "usageLocation": {
+          "type": "string",
+          "description": "Workshop/lab name or external job site where requested items will be used.",
+          "maxLength": 120
+        },
+        "requiresGatePass": {
+          "type": "boolean",
+          "description": "True when requested items will be taken outside school and require a gate pass."
+        },
+        "urgency": {
+          "type": "string",
+          "description": "Request priority.",
+          "enum": ["Normal", "Urgent"]
+        },
+        "message": {
+          "type": "string",
+          "description": "Message from the HOD to Store Officers and Admin.",
+          "minLength": 1,
+          "maxLength": 300
+        },
+        "status": {
+          "type": "string",
+          "description": "Fulfillment state.",
+          "enum": ["Pending", "Issued", "Declined"]
+        },
+        "handledByEmail": {
+          "type": "string",
+          "description": "Officer or Admin email who responded, or empty string.",
+          "maxLength": 254
+        },
+        "responseMessage": {
+          "type": "string",
+          "description": "Reply note from Officer or Admin.",
+          "maxLength": 300
+        },
+        "issueLogId": {
+          "type": "string",
+          "description": "Linked IssueLogEntry ID once issued, or empty string.",
+          "maxLength": 128
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp."
+        }
+      },
+      "required": [
+        "id",
+        "storeId",
+        "ownerUid",
+        "memberEmails",
+        "department",
+        "requestedByEmail",
+        "requestedByName",
+        "inventoryId",
+        "itemName",
+        "quantity",
+        "unit",
+        "recipientName",
+        "urgency",
+        "message",
+        "status",
+        "handledByEmail",
+        "responseMessage",
+        "issueLogId",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "DepartmentBudget": {
+      "title": "DepartmentBudget",
+      "description": "Departmental financial year procurement budget created by an HOD and submitted to the Store Officer and Admin.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Document ID.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "storeId": {
+          "type": "string",
+          "description": "Store workspace ID.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "ownerUid": {
+          "type": "string",
+          "description": "Creator UID.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "memberEmails": {
+          "type": "array",
+          "description": "Bounded list (max 50) of authorized member emails."
+        },
+        "department": {
+          "type": "string",
+          "description": "Submitting academic or technical department.",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "financialYear": {
+          "type": "string",
+          "description": "Financial year label such as 2026/2027.",
+          "minLength": 4,
+          "maxLength": 20
+        },
+        "title": {
+          "type": "string",
+          "description": "Budget title.",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "lineItems": {
+          "type": "array",
+          "description": "Bounded array (1..60) of budgeted item lines."
+        },
+        "totalAmount": {
+          "type": "integer",
+          "description": "Total budgeted cost in KES."
+        },
+        "notes": {
+          "type": "string",
+          "description": "Budget justification or executive summary notes.",
+          "maxLength": 400
+        },
+        "status": {
+          "type": "string",
+          "description": "Workflow state.",
+          "enum": ["Draft", "Submitted", "Reviewed", "Approved", "Returned"]
+        },
+        "submittedByEmail": {
+          "type": "string",
+          "format": "email",
+          "description": "Email of the HOD or creator.",
+          "minLength": 3,
+          "maxLength": 254
+        },
+        "submittedByName": {
+          "type": "string",
+          "description": "Display name of the HOD or creator.",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "submittedAt": {
+          "type": "string",
+          "description": "ISO timestamp when submitted to the store desk, or empty string for drafts.",
+          "maxLength": 40
+        },
+        "reviewedByEmail": {
+          "type": "string",
+          "description": "Officer or Admin email who reviewed or approved the budget, or empty string.",
+          "maxLength": 254
+        },
+        "reviewNotes": {
+          "type": "string",
+          "description": "Review remarks from Store Officer or Admin.",
+          "maxLength": 300
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp."
+        }
+      },
+      "required": [
+        "id",
+        "storeId",
+        "ownerUid",
+        "memberEmails",
+        "department",
+        "financialYear",
+        "title",
+        "lineItems",
+        "totalAmount",
+        "notes",
+        "status",
+        "submittedByEmail",
+        "submittedByName",
+        "submittedAt",
+        "reviewedByEmail",
+        "reviewNotes",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "IssueSlip": {
+      "title": "IssueSlip",
+      "description": "Bulk or single issue slip with embedded line items and return tracking.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Issue slip document ID.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "storeId": {
+          "type": "string",
+          "description": "Store workspace ID.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "recipient": {
+          "type": "string",
+          "description": "Recipient name.",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "recipientId": {
+          "type": "string",
+          "description": "Optional recipient document ID.",
+          "maxLength": 128
+        },
+        "dateIssued": {
+          "type": "string",
+          "description": "ISO timestamp string when issued.",
+          "minLength": 1,
+          "maxLength": 40
+        },
+        "scope": {
+          "type": "string",
+          "description": "Usage scope (Workshop / Practical or Outside School).",
+          "enum": ["Workshop / Practical", "Outside School"]
+        },
+        "usageLocation": {
+          "type": "string",
+          "description": "Optional workshop/lab or outside job destination.",
+          "maxLength": 120
+        },
+        "requiresGatePass": {
+          "type": "boolean",
+          "description": "True for Outside School gate pass dispatches."
+        },
+        "gatePassNumber": {
+          "type": "string",
+          "description": "Gate Pass reference number or empty string.",
+          "maxLength": 40
+        },
+        "status": {
+          "type": "string",
+          "description": "Slip return status.",
+          "enum": ["open", "partial", "closed"]
+        },
+        "issuedBy": {
+          "type": "string",
+          "format": "email",
+          "description": "Email of the verified admin who issued the slip.",
+          "minLength": 3,
+          "maxLength": 254
+        },
+        "lines": {
+          "type": "array",
+          "description": "Bounded list (1..200) of issued item lines."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp."
+        }
+      },
+      "required": [
+        "id",
+        "storeId",
+        "recipient",
+        "dateIssued",
+        "scope",
+        "status",
+        "issuedBy",
+        "lines",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "StockMovement": {
+      "title": "StockMovement",
+      "description": "Append-only stock movement ledger entry for issues, usable returns, and damaged write-offs.",
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "Movement type.",
+          "enum": ["ISSUE", "RETURN", "DAMAGED"]
+        },
+        "inventoryId": {
+          "type": "string",
+          "description": "Source InventoryItem ID.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "qty": {
+          "type": "number",
+          "description": "Positive quantity moved."
+        },
+        "issueId": {
+          "type": "string",
+          "description": "Linked IssueSlip document ID.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "userId": {
+          "type": "string",
+          "description": "Firebase Auth UID that recorded the movement.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "storeId": {
+          "type": "string",
+          "description": "Optional store workspace ID.",
+          "maxLength": 128
+        },
+        "memberEmails": {
+          "type": "array",
+          "description": "Bounded list (max 50) of authorized member emails."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        }
+      },
+      "required": [
+        "type",
+        "inventoryId",
+        "qty",
+        "issueId",
+        "userId",
+        "createdAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/storeSettings/{storeId}": {
+      "schema": { "$ref": "#/entities/StoreSettings" },
+      "description": "Workspace branding and authorized member list."
+    },
+    "/storeAccess/{accessId}": {
+      "schema": { "$ref": "#/entities/StoreAccess" },
+      "description": "Authorized procurement officer access grants (PII isolated by owner/admin)."
+    },
+    "/inventory/{itemId}": {
+      "schema": { "$ref": "#/entities/InventoryItem" },
+      "description": "Inventory master catalog (consumables and asset templates)."
+    },
+    "/assets/{assetId}": {
+      "schema": { "$ref": "#/entities/AssetItem" },
+      "description": "Individual serialized assets linked to inventory templates."
+    },
+    "/recipients/{recipientId}": {
+      "schema": { "$ref": "#/entities/Recipient" },
+      "description": "Trainees, trainers, staff, and departments receiving items."
+    },
+    "/issues/{issueId}": {
+      "schema": { "$ref": "#/entities/IssueSlip" },
+      "description": "Issue slips with embedded lines and return status tracking."
+    },
+    "/stockMovements/{movementId}": {
+      "schema": { "$ref": "#/entities/StockMovement" },
+      "description": "Append-only stock movement audit log (ISSUE, RETURN, DAMAGED)."
+    },
+    "/issueLog/{logId}": {
+      "schema": { "$ref": "#/entities/IssueLogEntry" },
+      "description": "Legacy read-only issue and return audit log."
+    },
+    "/disposalLog/{disposalId}": {
+      "schema": { "$ref": "#/entities/DisposalLogEntry" },
+      "description": "Obsolete asset disposal requests and approvals."
+    },
+    "/igaUnits/{igaId}": {
+      "schema": { "$ref": "#/entities/DepartmentalIGA" },
+      "description": "Registered departmental Income-Generating Activity units."
+    },
+    "/igaLogistics/{logId}": {
+      "schema": { "$ref": "#/entities/IGALogisticsEntry" },
+      "description": "Departmental IGA logistics, store requisitions, production output, revenue, and dispatch ledger."
+    },
+    "/issueRequests/{reqId}": {
+      "schema": { "$ref": "#/entities/IssueRequest" },
+      "description": "HOD item issue requests and alert messages to Store Officers and Admin."
+    },
+    "/departmentBudgets/{budgetId}": {
+      "schema": { "$ref": "#/entities/DepartmentBudget" },
+      "description": "Departmental financial year procurement budgets prepared by HODs and reviewed/downloaded by Store Officers and Admin."
+    }
+  }
+}

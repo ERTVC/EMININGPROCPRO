@@ -1,7 +1,7 @@
 {
-  "short_name": "PROCSTORE",
-  "name": "PROCSTORE",
-  "description": "Advanced TVET Inventory Management System.",
+  "short_name": "ERTVC SMS",
+  "name": "Eldama Ravine TVC SMS",
+  "description": "Eldama Ravine TVC Store Management System.",
   "icons": [
     {
       "src": "https://storage.googleapis.com/prompt-images/inventory-icon-192.png",
@@ -16,6 +16,6 @@
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#1E3A8A",
+  "theme_color": "#0284c7",
   "background_color": "#f1f5f9"
 }

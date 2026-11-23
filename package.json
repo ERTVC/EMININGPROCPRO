@@ -6,9 +6,22 @@
     "dev": "vite --port 3000 --host",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "echo 'No linting needed for index.html monolith'"
+    "lint": "eslint . && tsc --noEmit"
   },
   "devDependencies": {
     "vite": "^8.0.11"
+  },
+  "dependencies": {
+    "@eslint/js": "^10.0.1",
+    "@firebase/eslint-plugin-security-rules": "^0.0.2",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "eslint": "^10.15.0",
+    "firebase": "^13.4.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "recharts": "^3.11.0",
+    "typescript": "^7.0.2",
+    "typescript-eslint": "^8.73.0"
   }
 }

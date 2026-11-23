@@ -1,0 +1,790 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global safety net: default deny all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Reusable Helpers (ZERO get() / exists() / getAfter() / existsAfter()) ---
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() &&
+             request.auth.token.email_verified == true &&
+             request.auth.token.email is string &&
+             request.auth.token.email.size() >= 3 &&
+             request.auth.token.email.size() <= 254;
+    }
+
+    function isAllowedAdmin() {
+      return isVerifiedUser() &&
+             request.auth.token.email.lower() in ['procurementertvc@gmail.com'];
+    }
+
+    function emailKey(email) {
+      return email.lower().replace('[^a-z0-9_\\-]', '_');
+    }
+
+    function isValidMemberEmails(list) {
+      return list is list &&
+             list.size() >= 1 &&
+             list.size() <= 50 &&
+             list[0] is string &&
+             list[0].size() >= 3 &&
+             list[0].size() <= 254;
+    }
+
+    function isVerifiedMemberOf(data) {
+      return isAllowedAdmin() || (
+        isVerifiedUser() &&
+        data.storeId == 'main-store' &&
+        'memberEmails' in data &&
+        data.memberEmails is list &&
+        request.auth.token.email.lower() in data.memberEmails
+      );
+    }
+
+    function hasImmutableEntityBase() {
+      return incoming().id == existing().id &&
+             incoming().storeId == existing().storeId &&
+             incoming().ownerUid == existing().ownerUid &&
+             incoming().createdAt == existing().createdAt &&
+             incoming().updatedAt == request.time;
+    }
+
+    function isMemberSyncAction() {
+      return isAllowedAdmin() &&
+             existing().storeId == 'main-store' &&
+             'procurementertvc@gmail.com' in incoming().memberEmails &&
+             incoming().diff(existing()).affectedKeys().hasOnly(['memberEmails', 'updatedAt']);
+    }
+
+    // --- Validation Blueprints ---
+    function isValidStoreSettings(data) {
+      return data.keys().hasAll(['storeId', 'ownerUid', 'institutionName', 'logo', 'memberEmails', 'seeded', 'createdAt', 'updatedAt']) &&
+             data.keys().hasOnly(['storeId', 'ownerUid', 'institutionName', 'logo', 'memberEmails', 'seeded', 'createdAt', 'updatedAt']) &&
+             isValidId(data.storeId) &&
+             isValidId(data.ownerUid) &&
+             data.institutionName is string && data.institutionName.size() >= 1 && data.institutionName.size() <= 120 &&
+             data.logo is string && data.logo.size() <= 300000 &&
+             isValidMemberEmails(data.memberEmails) &&
+             data.seeded is bool &&
+             data.createdAt is timestamp &&
+             data.updatedAt is timestamp;
+    }
+
+    function isValidStoreAccess(data) {
+      return data.keys().hasAll(['email', 'role', 'department', 'status', 'storeId', 'addedByUid', 'createdAt', 'updatedAt']) &&
+             data.keys().hasOnly(['email', 'role', 'department', 'status', 'storeId', 'addedByUid', 'createdAt', 'updatedAt']) &&
+             data.email is string && data.email.size() >= 3 && data.email.size() <= 254 &&
+             data.email == data.email.lower() &&
+             data.role in ['admin', 'officer', 'hod'] &&
+             data.department is string && data.department.size() <= 80 &&
+             (data.role != 'hod' || data.department.size() >= 1) &&
+             data.status in ['active', 'revoked'] &&
+             data.storeId == 'main-store' &&
+             isValidId(data.addedByUid) &&
+             data.createdAt is timestamp &&
+             data.updatedAt is timestamp;
+    }
+
+    function isValidInventoryItem(data) {
+      return data.keys().hasAll(['id', 'storeId', 'ownerUid', 'memberEmails', 'name', 'category', 'department', 'type', 'unit', 'quantity', 'isIGA', 'condition', 'createdAt', 'updatedAt']) &&
+             data.keys().hasOnly(['id', 'storeId', 'ownerUid', 'memberEmails', 'name', 'category', 'department', 'location', 'type', 'unit', 'quantity', 'damagedQty', 'damagedQuantity', 'isIGA', 'condition', 'isConsumable', 'purchaseUnit', 'unitsPerPurchase', 'createdAt', 'updatedAt']) &&
+             isValidId(data.id) &&
+             isValidId(data.storeId) &&
+             isValidId(data.ownerUid) &&
+             isValidMemberEmails(data.memberEmails) &&
+             data.name is string && data.name.size() >= 1 && data.name.size() <= 120 &&
+             data.category is string && data.category.size() >= 1 && data.category.size() <= 80 &&
+             data.department is string && data.department.size() <= 80 &&
+             (!('location' in data) || (data.location is string && data.location.size() <= 120)) &&
+             data.type in ['Asset', 'Consumable'] &&
+             data.unit is string && data.unit.size() >= 1 && data.unit.size() <= 30 &&
+             data.quantity is number && float(data.quantity) >= 0.0 &&
+             (!('damagedQty' in data) || (data.damagedQty is number && float(data.damagedQty) >= 0.0)) &&
+             (!('damagedQuantity' in data) || (data.damagedQuantity is number && float(data.damagedQuantity) >= 0.0)) &&
+             data.isIGA is bool &&
+             data.condition is string && data.condition.size() <= 40 &&
+             (!('isConsumable' in data) || data.isConsumable is bool) &&
+             (!('purchaseUnit' in data) || (data.purchaseUnit is string && data.purchaseUnit.size() <= 30)) &&
+             (!('unitsPerPurchase' in data) || (data.unitsPerPurchase is number && float(data.unitsPerPurchase) >= 1.0)) &&
+             data.createdAt is timestamp &&
+             data.updatedAt is timestamp;
+    }
+
+    function isValidIssueLine(line) {
+      return line is map &&
+             line.keys().hasAll(['inventoryId', 'name', 'qtyIssued', 'qtyReturned', 'qtyDamaged', 'returnable', 'returnCondition', 'returnNote']) &&
+             line.keys().hasOnly(['inventoryId', 'name', 'qtyIssued', 'qtyReturned', 'qtyDamaged', 'returnable', 'returnCondition', 'returnNote', 'unit', 'assetId', 'serialNumber', 'returnDate', 'dateReturned']) &&
+             isValidId(line.inventoryId) &&
+             line.name is string && line.name.size() >= 1 && line.name.size() <= 120 &&
+             line.qtyIssued is number && float(line.qtyIssued) > 0.0 &&
+             line.qtyReturned is number && float(line.qtyReturned) >= 0.0 && float(line.qtyReturned) <= float(line.qtyIssued) + 0.001 &&
+             line.qtyDamaged is number && float(line.qtyDamaged) >= 0.0 && float(line.qtyDamaged) <= float(line.qtyReturned) + 0.001 &&
+             line.returnable is bool &&
+             line.returnCondition in ['', 'Good', 'Serviceable', 'Obsolete'] &&
+             line.returnNote is string && line.returnNote.size() <= 300 &&
+             (!('unit' in line) || (line.unit is string && line.unit.size() <= 30)) &&
+             (!('assetId' in line) || (line.assetId is string && line.assetId.size() <= 128)) &&
+             (!('serialNumber' in line) || (line.serialNumber is string && line.serialNumber.size() <= 100)) &&
+             (!('returnDate' in line) || (line.returnDate is string && line.returnDate.size() <= 40)) &&
+             (!('dateReturned' in line) || (line.dateReturned is string && line.dateReturned.size() <= 40));
+    }
+
+    function isValidIssueSlip(data) {
+      return data.keys().hasAll(['id', 'storeId', 'recipient', 'dateIssued', 'scope', 'status', 'issuedBy', 'lines', 'createdAt', 'updatedAt']) &&
+             data.keys().hasOnly(['id', 'storeId', 'ownerUid', 'memberEmails', 'recipient', 'recipientId', 'recipientName', 'dateIssued', 'scope', 'usageLocation', 'requiresGatePass', 'gatePassNumber', 'status', 'issuedBy', 'lines', 'createdAt', 'updatedAt']) &&
+             isValidId(data.id) &&
+             isValidId(data.storeId) &&
+             (!('ownerUid' in data) || isValidId(data.ownerUid)) &&
+             (!('memberEmails' in data) || isValidMemberEmails(data.memberEmails)) &&
+             data.recipient is string && data.recipient.size() >= 1 && data.recipient.size() <= 120 &&
+             (!('recipientId' in data) || (data.recipientId is string && data.recipientId.size() <= 128)) &&
+             (!('recipientName' in data) || (data.recipientName is string && data.recipientName.size() <= 120)) &&
+             data.dateIssued is string && data.dateIssued.size() >= 1 && data.dateIssued.size() <= 40 &&
+             data.scope in ['Workshop / Practical', 'Outside School'] &&
+             (!('usageLocation' in data) || (data.usageLocation is string && data.usageLocation.size() <= 120)) &&
+             (!('requiresGatePass' in data) || data.requiresGatePass is bool) &&
+             (!('gatePassNumber' in data) || (data.gatePassNumber is string && data.gatePassNumber.size() <= 40)) &&
+             data.status in ['open', 'partial', 'closed'] &&
+             data.issuedBy is string && data.issuedBy.size() >= 3 && data.issuedBy.size() <= 254 &&
+             data.lines is list &&
+             data.lines.size() >= 1 &&
+             data.lines.size() <= 200 &&
+             isValidIssueLine(data.lines[0]) &&
+             data.createdAt is timestamp &&
+             data.updatedAt is timestamp;
+    }
+
+    function isValidStockMovement(data) {
+      return data.keys().hasAll(['type', 'inventoryId', 'qty', 'issueId', 'userId', 'createdAt']) &&
+             data.keys().hasOnly(['type', 'inventoryId', 'qty', 'issueId', 'userId', 'storeId', 'createdAt']) &&
+             data.type in ['ISSUE', 'RETURN', 'DAMAGED'] &&
+             isValidId(data.inventoryId) &&
+             data.qty is number && float(data.qty) > 0.0 &&
+             isValidId(data.issueId) &&
+             isValidId(data.userId) &&
+             (!('storeId' in data) || isValidId(data.storeId)) &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidAssetItem(data) {
+      return data.keys().hasAll(['id', 'storeId', 'ownerUid', 'memberEmails', 'inventoryId', 'serialNumber', 'condition', 'status', 'currentHolderId', 'activeIssueLogId', 'createdAt', 'updatedAt']) &&
+             data.keys().hasOnly(['id', 'storeId', 'ownerUid', 'memberEmails', 'inventoryId', 'serialNumber', 'condition', 'status', 'currentHolderId', 'activeIssueLogId', 'createdAt', 'updatedAt']) &&
+             isValidId(data.id) &&
+             isValidId(data.storeId) &&
+             isValidId(data.ownerUid) &&
+             isValidMemberEmails(data.memberEmails) &&
+             isValidId(data.inventoryId) &&
+             data.serialNumber is string && data.serialNumber.size() >= 1 && data.serialNumber.size() <= 100 &&
+             data.condition in ['Good', 'Serviceable', 'Obsolete'] &&
+             data.status in ['In Stock', 'Issued', 'Disposed'] &&
+             data.currentHolderId is string && data.currentHolderId.size() <= 128 &&
+             data.activeIssueLogId is string && data.activeIssueLogId.size() <= 128 &&
+             data.createdAt is timestamp &&
+             data.updatedAt is timestamp;
+    }
+
+    function isValidRecipient(data) {
+      return data.keys().hasAll(['id', 'storeId', 'ownerUid', 'memberEmails', 'name', 'type', 'regNumber', 'createdAt', 'updatedAt']) &&
+             data.keys().hasOnly(['id', 'storeId', 'ownerUid', 'memberEmails', 'name', 'type', 'regNumber', 'createdAt', 'updatedAt']) &&
+             isValidId(data.id) &&
+             isValidId(data.storeId) &&
+             isValidId(data.ownerUid) &&
+             isValidMemberEmails(data.memberEmails) &&
+             data.name is string && data.name.size() >= 1 && data.name.size() <= 120 &&
+             data.type in ['Trainee', 'Trainer', 'Staff', 'Department', 'Other'] &&
+             data.regNumber is string && data.regNumber.size() <= 60 &&
+             data.createdAt is timestamp &&
+             data.updatedAt is timestamp;
+    }
+
+    function isValidDisposalLog(data) {
+      return data.keys().hasAll(['id', 'storeId', 'ownerUid', 'memberEmails', 'assetId', 'inventoryId', 'method', 'itemName', 'itemCategory', 'status', 'createdAt', 'updatedAt']) &&
+             data.keys().hasOnly(['id', 'storeId', 'ownerUid', 'memberEmails', 'assetId', 'inventoryId', 'method', 'itemName', 'itemCategory', 'status', 'createdAt', 'updatedAt']) &&
+             isValidId(data.id) &&
+             isValidId(data.storeId) &&
+             isValidId(data.ownerUid) &&
+             isValidMemberEmails(data.memberEmails) &&
+             isValidId(data.assetId) &&
+             isValidId(data.inventoryId) &&
+             data.method in ['Public Auction', 'Public Tender', 'Donation', 'Destruction', 'Trade-in'] &&
+             data.itemName is string && data.itemName.size() >= 1 && data.itemName.size() <= 200 &&
+             data.itemCategory is string && data.itemCategory.size() >= 1 && data.itemCategory.size() <= 80 &&
+             data.status in ['Pending', 'Approved', 'Rejected', 'Disposed'] &&
+             data.createdAt is timestamp &&
+             data.updatedAt is timestamp;
+    }
+
+    function isValidDepartmentalIGA(data) {
+      return data.keys().hasAll(['id', 'storeId', 'ownerUid', 'memberEmails', 'department', 'igaName', 'activityType', 'leadTrainer', 'status', 'description', 'createdAt', 'updatedAt']) &&
+             data.keys().hasOnly(['id', 'storeId', 'ownerUid', 'memberEmails', 'department', 'igaName', 'activityType', 'leadTrainer', 'status', 'description', 'approvalStatus', 'approvalNotes', 'reviewedByEmail', 'proposalFileName', 'proposalDataUrl', 'proposalLink', 'proposalSummary', 'createdAt', 'updatedAt']) &&
+             isValidId(data.id) &&
+             isValidId(data.storeId) &&
+             isValidId(data.ownerUid) &&
+             isValidMemberEmails(data.memberEmails) &&
+             data.department is string && data.department.size() >= 1 && data.department.size() <= 80 &&
+             data.igaName is string && data.igaName.size() >= 1 && data.igaName.size() <= 120 &&
+             data.activityType in ['Manufacturing', 'Services', 'Agriculture', 'Catering', 'Retail', 'Other'] &&
+             data.leadTrainer is string && data.leadTrainer.size() <= 120 &&
+             data.status in ['Active', 'Planned', 'Paused'] &&
+             data.description is string && data.description.size() <= 400 &&
+             (!('approvalStatus' in data) || data.approvalStatus in ['Pending', 'Approved', 'Rejected']) &&
+             (!('approvalNotes' in data) || (data.approvalNotes is string && data.approvalNotes.size() <= 300)) &&
+             (!('reviewedByEmail' in data) || (data.reviewedByEmail is string && data.reviewedByEmail.size() <= 254)) &&
+             (!('proposalFileName' in data) || (data.proposalFileName is string && data.proposalFileName.size() <= 150)) &&
+             (!('proposalDataUrl' in data) || (data.proposalDataUrl is string && data.proposalDataUrl.size() <= 350000)) &&
+             (!('proposalLink' in data) || (data.proposalLink is string && data.proposalLink.size() <= 500 && (data.proposalLink == '' || data.proposalLink.matches('^https://.+')))) &&
+             (!('proposalSummary' in data) || (data.proposalSummary is string && data.proposalSummary.size() <= 600)) &&
+             data.createdAt is timestamp &&
+             data.updatedAt is timestamp;
+    }
+
+    function isValidIGALogisticsEntry(data) {
+      return data.keys().hasAll(['id', 'storeId', 'ownerUid', 'memberEmails', 'igaId', 'department', 'igaName', 'entryType', 'inventoryId', 'description', 'quantity', 'unit', 'unitAmount', 'totalAmount', 'direction', 'dispatchStatus', 'destinationOrClient', 'dateRecorded', 'notes', 'createdAt', 'updatedAt']) &&
+             data.keys().hasOnly(['id', 'storeId', 'ownerUid', 'memberEmails', 'igaId', 'department', 'igaName', 'entryType', 'inventoryId', 'description', 'quantity', 'unit', 'unitAmount', 'totalAmount', 'direction', 'dispatchStatus', 'destinationOrClient', 'dateRecorded', 'notes', 'createdAt', 'updatedAt']) &&
+             isValidId(data.id) &&
+             isValidId(data.storeId) &&
+             isValidId(data.ownerUid) &&
+             isValidMemberEmails(data.memberEmails) &&
+             isValidId(data.igaId) &&
+             data.department is string && data.department.size() >= 1 && data.department.size() <= 80 &&
+             data.igaName is string && data.igaName.size() >= 1 && data.igaName.size() <= 120 &&
+             data.entryType in ['Store Requisition', 'Direct Purchase', 'Production Output', 'Sales Revenue', 'Delivery Dispatch'] &&
+             data.inventoryId is string && data.inventoryId.size() <= 128 &&
+             data.description is string && data.description.size() >= 1 && data.description.size() <= 200 &&
+             data.quantity is int && data.quantity >= 1 &&
+             data.unit is string && data.unit.size() >= 1 && data.unit.size() <= 30 &&
+             data.unitAmount is int && data.unitAmount >= 0 &&
+             data.totalAmount is int && data.totalAmount >= 0 &&
+             data.direction in ['Inflow', 'Outflow', 'Internal'] &&
+             data.dispatchStatus in ['Logged', 'In Transit', 'Delivered', 'Completed'] &&
+             data.destinationOrClient is string && data.destinationOrClient.size() <= 120 &&
+             data.dateRecorded is string && data.dateRecorded.size() >= 1 && data.dateRecorded.size() <= 40 &&
+             data.notes is string && data.notes.size() <= 300 &&
+             data.createdAt is timestamp &&
+             data.updatedAt is timestamp;
+    }
+
+    function isValidIssueRequest(data) {
+      return data.keys().hasAll(['id', 'storeId', 'ownerUid', 'memberEmails', 'department', 'requestedByEmail', 'requestedByName', 'inventoryId', 'itemName', 'quantity', 'unit', 'recipientName', 'urgency', 'message', 'status', 'handledByEmail', 'responseMessage', 'issueLogId', 'createdAt', 'updatedAt']) &&
+             data.keys().hasOnly(['id', 'storeId', 'ownerUid', 'memberEmails', 'department', 'requestedByEmail', 'requestedByName', 'inventoryId', 'itemName', 'quantity', 'unit', 'recipientName', 'usageScope', 'usageLocation', 'requiresGatePass', 'urgency', 'message', 'status', 'handledByEmail', 'responseMessage', 'issueLogId', 'createdAt', 'updatedAt']) &&
+             isValidId(data.id) &&
+             isValidId(data.storeId) &&
+             isValidId(data.ownerUid) &&
+             isValidMemberEmails(data.memberEmails) &&
+             data.department is string && data.department.size() >= 1 && data.department.size() <= 80 &&
+             data.requestedByEmail is string && data.requestedByEmail.size() >= 3 && data.requestedByEmail.size() <= 254 &&
+             data.requestedByName is string && data.requestedByName.size() >= 1 && data.requestedByName.size() <= 120 &&
+             data.inventoryId is string && data.inventoryId.size() <= 128 &&
+             data.itemName is string && data.itemName.size() >= 1 && data.itemName.size() <= 120 &&
+             data.quantity is number && float(data.quantity) > 0.0 &&
+             data.unit is string && data.unit.size() >= 1 && data.unit.size() <= 30 &&
+             data.recipientName is string && data.recipientName.size() >= 1 && data.recipientName.size() <= 120 &&
+             (!('usageScope' in data) || data.usageScope in ['Workshop / Practical', 'Outside School']) &&
+             (!('usageLocation' in data) || (data.usageLocation is string && data.usageLocation.size() <= 120)) &&
+             (!('requiresGatePass' in data) || data.requiresGatePass is bool) &&
+             data.urgency in ['Normal', 'Urgent'] &&
+             data.message is string && data.message.size() >= 1 && data.message.size() <= 300 &&
+             data.status in ['Pending', 'Issued', 'Declined'] &&
+             data.handledByEmail is string && data.handledByEmail.size() <= 254 &&
+             data.responseMessage is string && data.responseMessage.size() <= 300 &&
+             data.issueLogId is string && data.issueLogId.size() <= 128 &&
+             data.createdAt is timestamp &&
+             data.updatedAt is timestamp;
+    }
+
+    function isValidBudgetLineItem(item) {
+      return item is map &&
+             item.keys().hasAll(['id', 'category', 'itemName', 'unit', 'quantity', 'estimatedUnitCost', 'totalCost', 'justification']) &&
+             item.keys().hasOnly(['id', 'category', 'itemName', 'unit', 'quantity', 'estimatedUnitCost', 'totalCost', 'justification']) &&
+             item.id is string && item.id.size() >= 1 && item.id.size() <= 64 &&
+             item.category in ['Consumables & Training Materials', 'Tools & Workshop Equipment', 'Machinery & Capital Assets', 'IGA Working Capital', 'Maintenance & Repairs', 'Other'] &&
+             item.itemName is string && item.itemName.size() >= 1 && item.itemName.size() <= 120 &&
+             item.unit is string && item.unit.size() >= 1 && item.unit.size() <= 30 &&
+             item.quantity is int && item.quantity >= 1 &&
+             item.estimatedUnitCost is int && item.estimatedUnitCost >= 0 &&
+             item.totalCost is int && item.totalCost >= 0 &&
+             item.justification is string && item.justification.size() <= 200;
+    }
+
+    function isValidDepartmentBudget(data) {
+      return data.keys().hasAll(['id', 'storeId', 'ownerUid', 'memberEmails', 'department', 'financialYear', 'title', 'lineItems', 'totalAmount', 'notes', 'status', 'submittedByEmail', 'submittedByName', 'submittedAt', 'reviewedByEmail', 'reviewNotes', 'createdAt', 'updatedAt']) &&
+             data.keys().hasOnly(['id', 'storeId', 'ownerUid', 'memberEmails', 'department', 'financialYear', 'title', 'lineItems', 'totalAmount', 'notes', 'status', 'submittedByEmail', 'submittedByName', 'submittedAt', 'reviewedByEmail', 'reviewNotes', 'createdAt', 'updatedAt']) &&
+             isValidId(data.id) &&
+             isValidId(data.storeId) &&
+             isValidId(data.ownerUid) &&
+             isValidMemberEmails(data.memberEmails) &&
+             data.department is string && data.department.size() >= 1 && data.department.size() <= 80 &&
+             data.financialYear is string && data.financialYear.size() >= 4 && data.financialYear.size() <= 20 &&
+             data.title is string && data.title.size() >= 1 && data.title.size() <= 160 &&
+             data.lineItems is list && data.lineItems.size() >= 1 && data.lineItems.size() <= 60 &&
+             isValidBudgetLineItem(data.lineItems[0]) &&
+             data.totalAmount is int && data.totalAmount >= 0 &&
+             data.notes is string && data.notes.size() <= 400 &&
+             data.status in ['Draft', 'Submitted', 'Reviewed', 'Approved', 'Returned'] &&
+             data.submittedByEmail is string && data.submittedByEmail.size() >= 3 && data.submittedByEmail.size() <= 254 &&
+             data.submittedByName is string && data.submittedByName.size() >= 1 && data.submittedByName.size() <= 120 &&
+             data.submittedAt is string && data.submittedAt.size() <= 40 &&
+             data.reviewedByEmail is string && data.reviewedByEmail.size() <= 254 &&
+             data.reviewNotes is string && data.reviewNotes.size() <= 300 &&
+             data.createdAt is timestamp &&
+             data.updatedAt is timestamp;
+    }
+
+    // --- Collection Rules (Zero cross-doc lookups) ---
+    match /storeSettings/{storeId} {
+      allow get: if isValidId(storeId) && storeId == 'main-store' && isVerifiedMemberOf(existing());
+      allow list: if isAllowedAdmin() || (
+        isVerifiedUser() &&
+        request.auth.token.email.lower() in resource.data.memberEmails
+      );
+      allow create: if isAllowedAdmin() &&
+                       isValidId(storeId) &&
+                       storeId == 'main-store' &&
+                       isValidStoreSettings(incoming()) &&
+                       incoming().storeId == storeId &&
+                       incoming().ownerUid == request.auth.uid &&
+                       incoming().createdAt == request.time &&
+                       incoming().updatedAt == request.time &&
+                       'procurementertvc@gmail.com' in incoming().memberEmails;
+      allow update: if isAllowedAdmin() &&
+                       isValidId(storeId) &&
+                       storeId == 'main-store' &&
+                       isValidStoreSettings(incoming()) &&
+                       incoming().storeId == existing().storeId &&
+                       incoming().ownerUid == existing().ownerUid &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().updatedAt == request.time &&
+                       'procurementertvc@gmail.com' in incoming().memberEmails &&
+                       (
+                         incoming().diff(existing()).affectedKeys().hasOnly(['institutionName', 'logo', 'updatedAt']) ||
+                         incoming().diff(existing()).affectedKeys().hasOnly(['memberEmails', 'updatedAt']) ||
+                         incoming().diff(existing()).affectedKeys().hasOnly(['seeded', 'updatedAt'])
+                       );
+      allow delete: if false;
+    }
+
+    match /storeAccess/{accessId} {
+      allow get: if isValidId(accessId) && (
+        isAllowedAdmin() ||
+        (isVerifiedUser() && (
+          accessId == emailKey(request.auth.token.email) ||
+          existing().email == request.auth.token.email.lower()
+        ))
+      );
+      allow list: if isAllowedAdmin();
+      allow create: if isAllowedAdmin() &&
+                       isValidId(accessId) &&
+                       isValidStoreAccess(incoming()) &&
+                       incoming().addedByUid == request.auth.uid &&
+                       incoming().createdAt == request.time &&
+                       incoming().updatedAt == request.time &&
+                       accessId == emailKey(incoming().email);
+      allow update: if isAllowedAdmin() &&
+                       isValidId(accessId) &&
+                       isValidStoreAccess(incoming()) &&
+                       incoming().email == existing().email &&
+                       incoming().storeId == existing().storeId &&
+                       incoming().addedByUid == existing().addedByUid &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().updatedAt == request.time &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['role', 'department', 'status', 'updatedAt']);
+      allow delete: if isAllowedAdmin() && isValidId(accessId);
+    }
+
+    // Strict allowlist admin gate for inventory, issues, and stockMovements
+    match /inventory/{itemId} {
+      allow get: if isAllowedAdmin() && isValidId(itemId);
+      allow list: if isAllowedAdmin();
+      allow create: if isAllowedAdmin() &&
+                       isValidId(itemId) &&
+                       isValidInventoryItem(incoming()) &&
+                       incoming().id == itemId &&
+                       incoming().storeId == 'main-store' &&
+                       incoming().ownerUid == request.auth.uid &&
+                       incoming().createdAt == request.time &&
+                       incoming().updatedAt == request.time;
+      allow update: if isAllowedAdmin() &&
+                       isValidId(itemId) &&
+                       isValidInventoryItem(incoming()) &&
+                       hasImmutableEntityBase() &&
+                       incoming().type == existing().type &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'name', 'category', 'department', 'location', 'unit',
+                         'quantity', 'damagedQty', 'damagedQuantity', 'isIGA',
+                         'condition', 'isConsumable', 'purchaseUnit', 'unitsPerPurchase',
+                         'memberEmails', 'updatedAt'
+                       ]);
+      allow delete: if isAllowedAdmin() && isValidId(itemId);
+    }
+
+    match /issues/{issueId} {
+      allow get: if isAllowedAdmin() && isValidId(issueId);
+      allow list: if isAllowedAdmin();
+      allow create: if isAllowedAdmin() &&
+                       isValidId(issueId) &&
+                       isValidIssueSlip(incoming()) &&
+                       incoming().id == issueId &&
+                       incoming().storeId == 'main-store' &&
+                       incoming().createdAt == request.time &&
+                       incoming().updatedAt == request.time;
+      allow update: if isAllowedAdmin() &&
+                       isValidId(issueId) &&
+                       isValidIssueSlip(incoming()) &&
+                       incoming().id == existing().id &&
+                       incoming().storeId == existing().storeId &&
+                       incoming().dateIssued == existing().dateIssued &&
+                       incoming().issuedBy == existing().issuedBy &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().updatedAt == request.time &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['lines', 'status', 'memberEmails', 'updatedAt']);
+      allow delete: if isAllowedAdmin() && isValidId(issueId);
+    }
+
+    match /stockMovements/{movementId} {
+      allow get: if isAllowedAdmin() && isValidId(movementId);
+      allow list: if isAllowedAdmin();
+      allow create: if isAllowedAdmin() &&
+                       isValidId(movementId) &&
+                       isValidStockMovement(incoming()) &&
+                       incoming().userId == request.auth.uid &&
+                       incoming().createdAt == request.time;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    // Legacy issueLog kept read-only so existing historical records still display
+    match /issueLog/{logId} {
+      allow get: if isValidId(logId) && isVerifiedMemberOf(existing());
+      allow list: if isAllowedAdmin() || (
+        isVerifiedUser() &&
+        request.auth.token.email.lower() in resource.data.memberEmails
+      );
+      allow create: if false;
+      allow update: if false;
+      allow delete: if isAllowedAdmin() && isValidId(logId);
+    }
+
+    match /assets/{assetId} {
+      allow get: if isValidId(assetId) && isVerifiedMemberOf(existing());
+      allow list: if isAllowedAdmin() || (
+        isVerifiedUser() &&
+        request.auth.token.email.lower() in resource.data.memberEmails
+      );
+      allow create: if isVerifiedUser() &&
+                       isValidId(assetId) &&
+                       isValidAssetItem(incoming()) &&
+                       incoming().id == assetId &&
+                       incoming().storeId == 'main-store' &&
+                       incoming().ownerUid == request.auth.uid &&
+                       incoming().createdAt == request.time &&
+                       incoming().updatedAt == request.time &&
+                       isVerifiedMemberOf(incoming()) &&
+                       incoming().status == 'In Stock' &&
+                       incoming().currentHolderId == '' &&
+                       incoming().activeIssueLogId == '';
+      allow update: if isVerifiedUser() &&
+                       isValidId(assetId) &&
+                       isValidAssetItem(incoming()) &&
+                       isVerifiedMemberOf(existing()) &&
+                       hasImmutableEntityBase() &&
+                       incoming().inventoryId == existing().inventoryId &&
+                       (
+                         (existing().status != 'Disposed' &&
+                          incoming().diff(existing()).affectedKeys().hasOnly(['serialNumber', 'condition', 'updatedAt'])) ||
+                         (isAllowedAdmin() &&
+                          existing().status == 'In Stock' &&
+                          incoming().status == 'Issued' &&
+                          incoming().currentHolderId.size() >= 1 &&
+                          isValidId(incoming().activeIssueLogId) &&
+                          incoming().diff(existing()).affectedKeys().hasOnly(['status', 'condition', 'currentHolderId', 'activeIssueLogId', 'updatedAt'])) ||
+                         (isAllowedAdmin() &&
+                          existing().status == 'Issued' &&
+                          incoming().status == 'In Stock' &&
+                          incoming().currentHolderId == '' &&
+                          incoming().activeIssueLogId == '' &&
+                          incoming().diff(existing()).affectedKeys().hasOnly(['status', 'condition', 'currentHolderId', 'activeIssueLogId', 'updatedAt'])) ||
+                         (isAllowedAdmin() &&
+                          existing().status == 'In Stock' &&
+                          incoming().status == 'Disposed' &&
+                          incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt'])) ||
+                         isMemberSyncAction()
+                       );
+      allow delete: if isAllowedAdmin() && isValidId(assetId);
+    }
+
+    match /recipients/{recipientId} {
+      allow get: if isValidId(recipientId) && isVerifiedMemberOf(existing());
+      allow list: if isAllowedAdmin() || (
+        isVerifiedUser() &&
+        request.auth.token.email.lower() in resource.data.memberEmails
+      );
+      allow create: if isAllowedAdmin() &&
+                       isValidId(recipientId) &&
+                       isValidRecipient(incoming()) &&
+                       incoming().id == recipientId &&
+                       incoming().storeId == 'main-store' &&
+                       incoming().ownerUid == request.auth.uid &&
+                       incoming().createdAt == request.time &&
+                       incoming().updatedAt == request.time;
+      allow update: if isAllowedAdmin() &&
+                       isValidId(recipientId) &&
+                       isValidRecipient(incoming()) &&
+                       hasImmutableEntityBase() &&
+                       (
+                         incoming().diff(existing()).affectedKeys().hasOnly(['name', 'type', 'regNumber', 'updatedAt']) ||
+                         isMemberSyncAction()
+                       );
+      allow delete: if isAllowedAdmin() && isValidId(recipientId);
+    }
+
+    match /disposalLog/{disposalId} {
+      allow get: if isValidId(disposalId) && isVerifiedMemberOf(existing());
+      allow list: if isAllowedAdmin() || (
+        isVerifiedUser() &&
+        request.auth.token.email.lower() in resource.data.memberEmails
+      );
+      allow create: if isAllowedAdmin() &&
+                       isValidId(disposalId) &&
+                       isValidDisposalLog(incoming()) &&
+                       incoming().id == disposalId &&
+                       incoming().storeId == 'main-store' &&
+                       incoming().ownerUid == request.auth.uid &&
+                       incoming().createdAt == request.time &&
+                       incoming().updatedAt == request.time &&
+                       incoming().status == 'Pending';
+      allow update: if isAllowedAdmin() &&
+                       isValidId(disposalId) &&
+                       isValidDisposalLog(incoming()) &&
+                       hasImmutableEntityBase() &&
+                       incoming().assetId == existing().assetId &&
+                       incoming().inventoryId == existing().inventoryId &&
+                       (
+                         (existing().status in ['Pending', 'Approved'] &&
+                          incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt']) &&
+                          (
+                            (existing().status == 'Pending' && incoming().status in ['Approved', 'Rejected']) ||
+                            (existing().status == 'Approved' && incoming().status == 'Disposed')
+                          )) ||
+                         isMemberSyncAction()
+                       );
+      allow delete: if isAllowedAdmin() && isValidId(disposalId);
+    }
+
+    match /igaUnits/{igaId} {
+      allow get: if isValidId(igaId) && isVerifiedMemberOf(existing());
+      allow list: if isAllowedAdmin() || (
+        isVerifiedUser() &&
+        request.auth.token.email.lower() in resource.data.memberEmails
+      );
+      allow create: if isVerifiedUser() &&
+                       isValidId(igaId) &&
+                       isValidDepartmentalIGA(incoming()) &&
+                       incoming().keys().hasAll(['approvalStatus', 'approvalNotes', 'reviewedByEmail', 'proposalFileName', 'proposalDataUrl', 'proposalSummary']) &&
+                       incoming().id == igaId &&
+                       incoming().storeId == 'main-store' &&
+                       incoming().ownerUid == request.auth.uid &&
+                       incoming().createdAt == request.time &&
+                       incoming().updatedAt == request.time &&
+                       isVerifiedMemberOf(incoming()) &&
+                       (
+                         (isAllowedAdmin() && incoming().approvalStatus in ['Approved', 'Pending']) ||
+                         (
+                           incoming().approvalStatus == 'Pending' &&
+                           incoming().status == 'Planned' &&
+                           incoming().reviewedByEmail == '' &&
+                           incoming().approvalNotes == '' &&
+                           (
+                             (incoming().proposalFileName.size() >= 1 && incoming().proposalDataUrl.size() >= 1) ||
+                             ('proposalLink' in incoming() && incoming().proposalLink.size() >= 12)
+                           )
+                         )
+                       );
+      allow update: if isVerifiedUser() &&
+                       isValidId(igaId) &&
+                       isValidDepartmentalIGA(incoming()) &&
+                       isVerifiedMemberOf(existing()) &&
+                       hasImmutableEntityBase() &&
+                       (
+                         (
+                           isAllowedAdmin() &&
+                           incoming().diff(existing()).affectedKeys().hasOnly(['department', 'igaName', 'activityType', 'leadTrainer', 'status', 'description', 'proposalFileName', 'proposalDataUrl', 'proposalLink', 'proposalSummary', 'approvalStatus', 'approvalNotes', 'reviewedByEmail', 'updatedAt'])
+                         ) ||
+                         (
+                           incoming().department == existing().department &&
+                           ('approvalStatus' in existing()) &&
+                           existing().approvalStatus in ['Pending', 'Rejected'] &&
+                           incoming().approvalStatus == 'Pending' &&
+                           incoming().status == 'Planned' &&
+                           incoming().reviewedByEmail == '' &&
+                           incoming().approvalNotes == '' &&
+                           incoming().diff(existing()).affectedKeys().hasOnly(['igaName', 'activityType', 'leadTrainer', 'status', 'description', 'proposalFileName', 'proposalDataUrl', 'proposalLink', 'proposalSummary', 'approvalStatus', 'approvalNotes', 'reviewedByEmail', 'updatedAt'])
+                         ) ||
+                         (
+                           incoming().department == existing().department &&
+                           (!('approvalStatus' in existing()) || existing().approvalStatus == 'Approved') &&
+                           (!('approvalStatus' in incoming()) || incoming().approvalStatus == 'Approved') &&
+                           (!('reviewedByEmail' in incoming()) || !('reviewedByEmail' in existing()) || incoming().reviewedByEmail == existing().reviewedByEmail) &&
+                           (!('approvalNotes' in incoming()) || !('approvalNotes' in existing()) || incoming().approvalNotes == existing().approvalNotes) &&
+                           incoming().diff(existing()).affectedKeys().hasOnly(['igaName', 'activityType', 'leadTrainer', 'status', 'description', 'proposalFileName', 'proposalDataUrl', 'proposalLink', 'proposalSummary', 'updatedAt'])
+                         ) ||
+                         isMemberSyncAction()
+                       );
+      allow delete: if isAllowedAdmin() && isValidId(igaId);
+    }
+
+    match /igaLogistics/{logId} {
+      allow get: if isValidId(logId) && isVerifiedMemberOf(existing());
+      allow list: if isAllowedAdmin() || (
+        isVerifiedUser() &&
+        request.auth.token.email.lower() in resource.data.memberEmails
+      );
+      allow create: if isVerifiedUser() &&
+                       isValidId(logId) &&
+                       isValidIGALogisticsEntry(incoming()) &&
+                       incoming().id == logId &&
+                       incoming().storeId == 'main-store' &&
+                       incoming().ownerUid == request.auth.uid &&
+                       incoming().createdAt == request.time &&
+                       incoming().updatedAt == request.time &&
+                       isVerifiedMemberOf(incoming());
+      allow update: if isVerifiedUser() &&
+                       isValidId(logId) &&
+                       isValidIGALogisticsEntry(incoming()) &&
+                       isVerifiedMemberOf(existing()) &&
+                       hasImmutableEntityBase() &&
+                       incoming().igaId == existing().igaId &&
+                       incoming().inventoryId == existing().inventoryId &&
+                       incoming().entryType == existing().entryType &&
+                       (
+                         (
+                           (existing().dispatchStatus != 'Completed' || isAllowedAdmin()) &&
+                           incoming().diff(existing()).affectedKeys().hasOnly(['dispatchStatus', 'destinationOrClient', 'notes', 'updatedAt'])
+                         ) ||
+                         isMemberSyncAction()
+                       );
+      allow delete: if isAllowedAdmin() && isValidId(logId);
+    }
+
+    match /issueRequests/{reqId} {
+      allow get: if isValidId(reqId) && isVerifiedMemberOf(existing());
+      allow list: if isAllowedAdmin() || (
+        isVerifiedUser() &&
+        request.auth.token.email.lower() in resource.data.memberEmails
+      );
+      allow create: if isVerifiedUser() &&
+                       isValidId(reqId) &&
+                       isValidIssueRequest(incoming()) &&
+                       incoming().id == reqId &&
+                       incoming().storeId == 'main-store' &&
+                       incoming().ownerUid == request.auth.uid &&
+                       incoming().createdAt == request.time &&
+                       incoming().updatedAt == request.time &&
+                       isVerifiedMemberOf(incoming()) &&
+                       incoming().status == 'Pending' &&
+                       incoming().handledByEmail == '' &&
+                       incoming().responseMessage == '' &&
+                       incoming().issueLogId == '' &&
+                       (isAllowedAdmin() || incoming().requestedByEmail.lower() == request.auth.token.email.lower());
+      allow update: if isVerifiedUser() &&
+                       isValidId(reqId) &&
+                       isValidIssueRequest(incoming()) &&
+                       isVerifiedMemberOf(existing()) &&
+                       hasImmutableEntityBase() &&
+                       incoming().department == existing().department &&
+                       incoming().requestedByEmail == existing().requestedByEmail &&
+                       incoming().requestedByName == existing().requestedByName &&
+                       incoming().inventoryId == existing().inventoryId &&
+                       incoming().itemName == existing().itemName &&
+                       incoming().quantity == existing().quantity &&
+                       incoming().unit == existing().unit &&
+                       incoming().recipientName == existing().recipientName &&
+                       incoming().urgency == existing().urgency &&
+                       incoming().message == existing().message &&
+                       (
+                         (
+                           isAllowedAdmin() &&
+                           existing().status == 'Pending' &&
+                           incoming().status in ['Issued', 'Declined'] &&
+                           incoming().handledByEmail.lower() == request.auth.token.email.lower() &&
+                           incoming().diff(existing()).affectedKeys().hasOnly(['status', 'handledByEmail', 'responseMessage', 'issueLogId', 'updatedAt'])
+                         ) ||
+                         isMemberSyncAction()
+                       );
+      allow delete: if isAllowedAdmin() && isValidId(reqId);
+    }
+
+    match /departmentBudgets/{budgetId} {
+      allow get: if isValidId(budgetId) && isVerifiedMemberOf(existing());
+      allow list: if isAllowedAdmin() || (
+        isVerifiedUser() &&
+        request.auth.token.email.lower() in resource.data.memberEmails
+      );
+      allow create: if isVerifiedUser() &&
+                       isValidId(budgetId) &&
+                       isValidDepartmentBudget(incoming()) &&
+                       incoming().id == budgetId &&
+                       incoming().storeId == 'main-store' &&
+                       incoming().ownerUid == request.auth.uid &&
+                       incoming().createdAt == request.time &&
+                       incoming().updatedAt == request.time &&
+                       isVerifiedMemberOf(incoming()) &&
+                       (isAllowedAdmin() || incoming().submittedByEmail.lower() == request.auth.token.email.lower()) &&
+                       (
+                         (isAllowedAdmin() && incoming().status in ['Draft', 'Submitted', 'Approved']) ||
+                         (
+                           incoming().status in ['Draft', 'Submitted'] &&
+                           incoming().reviewedByEmail == '' &&
+                           incoming().reviewNotes == ''
+                         )
+                       );
+      allow update: if isVerifiedUser() &&
+                       isValidId(budgetId) &&
+                       isValidDepartmentBudget(incoming()) &&
+                       isVerifiedMemberOf(existing()) &&
+                       hasImmutableEntityBase() &&
+                       incoming().submittedByEmail == existing().submittedByEmail &&
+                       incoming().submittedByName == existing().submittedByName &&
+                       (
+                         (
+                           incoming().department == existing().department &&
+                           existing().status in ['Draft', 'Returned'] &&
+                           incoming().status in ['Draft', 'Submitted'] &&
+                           incoming().reviewedByEmail == '' &&
+                           incoming().reviewNotes == '' &&
+                           incoming().diff(existing()).affectedKeys().hasOnly(['financialYear', 'title', 'lineItems', 'totalAmount', 'notes', 'status', 'submittedAt', 'reviewedByEmail', 'reviewNotes', 'updatedAt'])
+                         ) ||
+                         (
+                           isAllowedAdmin() &&
+                           existing().status in ['Submitted', 'Reviewed'] &&
+                           incoming().status in ['Reviewed', 'Approved', 'Returned'] &&
+                           incoming().reviewedByEmail.lower() == request.auth.token.email.lower() &&
+                           incoming().diff(existing()).affectedKeys().hasOnly(['status', 'reviewedByEmail', 'reviewNotes', 'updatedAt'])
+                         ) ||
+                         isMemberSyncAction()
+                       );
+      allow delete: if isValidId(budgetId) &&
+                       isVerifiedMemberOf(existing()) && (
+                         isAllowedAdmin() ||
+                         existing().status == 'Draft'
+                       );
+    }
+  }
+}
